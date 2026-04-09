@@ -1,28 +1,6 @@
 import type { WLEDInfo, WLEDState } from './types';
 
 /**
- * Build a WLED API URL, routing through the dev proxy in dev mode to bypass
- * Chrome Private Network Access (PNA) blocks.
- *
- * Exported for testing. WLEDRestClient uses this internally with
- * `import.meta.env.DEV` as the `devMode` default.
- *
- * The proxy path is only used in a real browser context (window.location present).
- * In Node/jsdom test environments, direct IP URLs are always used so that
- * MSW and other test interceptors work correctly.
- *
- * @param ip - Cube IP address (e.g. "192.168.1.160")
- * @param path - API path including leading slash (e.g. "/json/state")
- * @param devMode - True to route through /api/wled-proxy (same-origin); false for direct IP
- */
-export function buildWledUrl(ip: string, path: string, devMode: boolean): string {
-  if (devMode) {
-    return `/api/wled-proxy?target=${encodeURIComponent(ip)}&path=${encodeURIComponent(path)}`;
-  }
-  return `http://${ip}${path}`;
-}
-
-/**
  * Serialized REST client for WLED JSON API.
  *
  * CRITICAL: WLED ESP32 firmware cannot handle parallel HTTP requests.
@@ -36,17 +14,6 @@ export class WLEDRestClient {
   private processing = false;
 
   constructor(private readonly ip: string) {}
-
-  /**
-   * Build a URL for the given WLED API path.
-   * In dev mode (import.meta.env.DEV), routes through the Vite /api/wled-proxy
-   * middleware to bypass Chrome Private Network Access blocks.
-   * In production, or when running tests (import.meta.env.TEST), calls the cube IP directly.
-   */
-  private buildUrl(path: string): string {
-    // import.meta.env.TEST is set by vitest; skip proxy in test environments
-    return buildWledUrl(this.ip, path, import.meta.env.DEV && !import.meta.env.TEST);
-  }
 
   private async processNext(): Promise<void> {
     if (this.processing || this.queue.length === 0) return;
@@ -76,7 +43,7 @@ export class WLEDRestClient {
   /** Fetch firmware info -- call at startup to validate IP and probe firmware version */
   getInfo(): Promise<WLEDInfo> {
     return this.enqueue(async () => {
-      const res = await fetch(this.buildUrl('/json/info'));
+      const res = await fetch(`http://${this.ip}/json/info`);
       if (!res.ok) throw new Error(`WLED /json/info failed: ${res.status}`);
       return res.json() as Promise<WLEDInfo>;
     });
@@ -85,7 +52,7 @@ export class WLEDRestClient {
   /** Fetch current cube state */
   getState(): Promise<WLEDState> {
     return this.enqueue(async () => {
-      const res = await fetch(this.buildUrl('/json/state'));
+      const res = await fetch(`http://${this.ip}/json/state`);
       if (!res.ok) throw new Error(`WLED /json/state failed: ${res.status}`);
       return res.json() as Promise<WLEDState>;
     });
@@ -94,7 +61,7 @@ export class WLEDRestClient {
   /** Send a partial state update. Merges with existing state server-side. */
   setState(partial: Record<string, unknown>): Promise<void> {
     return this.enqueue(async () => {
-      const res = await fetch(this.buildUrl('/json/state'), {
+      const res = await fetch(`http://${this.ip}/json/state`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(partial),
@@ -106,7 +73,7 @@ export class WLEDRestClient {
   /** Fetch effect list (array of effect name strings) */
   getEffects(): Promise<string[]> {
     return this.enqueue(async () => {
-      const res = await fetch(this.buildUrl('/json/eff'));
+      const res = await fetch(`http://${this.ip}/json/eff`);
       if (!res.ok) throw new Error(`WLED /json/eff failed: ${res.status}`);
       return res.json() as Promise<string[]>;
     });
@@ -115,7 +82,7 @@ export class WLEDRestClient {
   /** Fetch palette list (array of palette name strings) */
   getPalettes(): Promise<string[]> {
     return this.enqueue(async () => {
-      const res = await fetch(this.buildUrl('/json/pal'));
+      const res = await fetch(`http://${this.ip}/json/pal`);
       if (!res.ok) throw new Error(`WLED /json/pal failed: ${res.status}`);
       return res.json() as Promise<string[]>;
     });
