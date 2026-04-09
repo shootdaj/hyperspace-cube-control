@@ -1,0 +1,89 @@
+/*
+ * Brutalist — Raw industrial
+ * High contrast black/white + harsh orange-red accent, system mono, chunky borders
+ */
+[data-theme='brutalist'] {
+  /* Backgrounds — pure black */
+  --background: oklch(0.07 0 0);
+  --foreground: oklch(0.98 0 0);
+  --card: oklch(0.12 0 0);
+  --card-foreground: oklch(0.98 0 0);
+  --popover: oklch(0.12 0 0);
+  --popover-foreground: oklch(0.98 0 0);
+
+  /* Primary — harsh orange-red */
+  --primary: oklch(0.65 0.25 35);
+  --primary-foreground: oklch(0.98 0 0);
+
+  /* Secondary — dark gray */
+  --secondary: oklch(0.18 0 0);
+  --secondary-foreground: oklch(0.98 0 0);
+
+  /* Muted */
+  --muted: oklch(0.15 0 0);
+  --muted-foreground: oklch(0.55 0 0);
+
+  /* Accent — same harsh orange-red */
+  --accent: oklch(0.65 0.25 35);
+  --accent-foreground: oklch(0.98 0 0);
+
+  --destructive: oklch(0.6 0.3 30);
+
+  /* Borders — thick, visible, white or accent */
+  --border: oklch(0.4 0 0);
+  --input: oklch(0.2 0 0);
+  --ring: oklch(0.65 0.25 35);
+
+  /* Charts */
+  --chart-1: oklch(0.65 0.25 35);
+  --chart-2: oklch(0.98 0 0);
+  --chart-3: oklch(0.55 0 0);
+  --chart-4: oklch(0.35 0 0);
+  --chart-5: oklch(0.75 0.15 50);
+
+  /* Sidebar */
+  --sidebar: oklch(0.09 0 0);
+  --sidebar-foreground: oklch(0.98 0 0);
+  --sidebar-primary: oklch(0.65 0.25 35);
+  --sidebar-primary-foreground: oklch(0.98 0 0);
+  --sidebar-accent: oklch(0.18 0 0);
+  --sidebar-accent-foreground: oklch(0.98 0 0);
+  --sidebar-border: oklch(0.4 0 0);
+  --sidebar-ring: oklch(0.65 0.25 35);
+
+  /* Radius — ZERO. Raw exposed corners */
+  --radius: 0rem;
+
+  /* Typography — system monospace, raw */
+  --font-theme: 'Space Mono', 'Courier New', ui-monospace, monospace;
+  --font-theme-heading: 'Space Mono', 'Courier New', ui-monospace, monospace;
+
+  /* Theme-specific effects */
+  --theme-glow: none;
+  --theme-panel-texture: none;
+}
+
+/* Brutalist-specific overrides — uppercase labels, thick borders */
+[data-theme='brutalist'] [data-slot='tabs-trigger'] {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+}
+
+[data-theme='brutalist'] [data-slot='button'] {
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 700;
+  border-width: 2px;
+}
+
+[data-theme='brutalist'] [data-slot='slider-track'] {
+  height: 6px;
+}
+
+[data-theme='brutalist'] [data-slot='slider-thumb'] {
+  width: 18px;
+  height: 18px;
+  border-width: 3px;
+  border-radius: 0;
+}

@@ -110,11 +110,11 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### UI Design & Responsiveness
 
-- [ ] **UI-01**: 5 distinct dark pro-tool UI theme variations available
-- [ ] **UI-02**: User can switch between themes in settings
+- [x] **UI-01**: 5 distinct dark pro-tool UI theme variations available
+- [x] **UI-02**: User can switch between themes in settings
 - [ ] **UI-03**: All controls accessible on mobile (375px+) and desktop (1440px+)
 - [ ] **UI-04**: Touch targets minimum 44x44px on mobile
-- [ ] **UI-05**: Keyboard navigation and focus states for accessibility
+- [x] **UI-05**: Keyboard navigation and focus states for accessibility
 - [ ] **UI-06**: Responsive layout adapts between phone (stacked panels) and desktop (multi-panel)
 
 ### Deployment
@@ -129,7 +129,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **TEST-02**: Unit tests for each plugin interface contract
 - [x] **TEST-03**: Integration tests for pipeline (input → mapping → output)
 - [x] **TEST-04**: Visual regression tests for 3D cube rendering
-- [ ] **TEST-05**: All tests pass in CI without physical hardware
+- [x] **TEST-05**: All tests pass in CI without physical hardware
 
 ## v2 Requirements
 
@@ -248,10 +248,10 @@ Deferred to future release. Tracked but not in current roadmap.
 | CAM-04 | Phase 7 | Pending |
 | CAM-05 | Phase 7 | Pending |
 | CAM-06 | Phase 7 | Pending |
-| UI-01 | Phase 8 | Pending |
-| UI-02 | Phase 8 | Pending |
-| UI-05 | Phase 8 | Pending |
-| TEST-05 | Phase 8 | Pending |
+| UI-01 | Phase 8 | Complete |
+| UI-02 | Phase 8 | Complete |
+| UI-05 | Phase 8 | Complete |
+| TEST-05 | Phase 8 | Complete |
 
 **Coverage:**
 - v1 requirements: 82 total

@@ -1,0 +1,70 @@
+/*
+ * Midnight Grid — Ableton/Resolume-inspired
+ * Cool blue-gray palette, monospace typography, grid borders, scan-line texture
+ */
+[data-theme='midnight-grid'] {
+  /* Backgrounds */
+  --background: oklch(0.11 0.015 250);
+  --foreground: oklch(0.92 0.01 250);
+  --card: oklch(0.17 0.015 250);
+  --card-foreground: oklch(0.92 0.01 250);
+  --popover: oklch(0.17 0.015 250);
+  --popover-foreground: oklch(0.92 0.01 250);
+
+  /* Primary — electric blue */
+  --primary: oklch(0.65 0.2 260);
+  --primary-foreground: oklch(0.98 0.005 250);
+
+  /* Secondary — slate */
+  --secondary: oklch(0.22 0.015 250);
+  --secondary-foreground: oklch(0.85 0.01 250);
+
+  /* Muted */
+  --muted: oklch(0.2 0.01 250);
+  --muted-foreground: oklch(0.6 0.015 250);
+
+  /* Accent — blue highlight */
+  --accent: oklch(0.3 0.04 260);
+  --accent-foreground: oklch(0.92 0.01 250);
+
+  --destructive: oklch(0.65 0.22 25);
+
+  /* Borders — visible grid lines */
+  --border: oklch(0.3 0.02 250);
+  --input: oklch(0.25 0.015 250);
+  --ring: oklch(0.65 0.2 260);
+
+  /* Charts */
+  --chart-1: oklch(0.65 0.2 260);
+  --chart-2: oklch(0.55 0.15 220);
+  --chart-3: oklch(0.5 0.1 200);
+  --chart-4: oklch(0.45 0.08 240);
+  --chart-5: oklch(0.35 0.05 260);
+
+  /* Sidebar */
+  --sidebar: oklch(0.14 0.015 250);
+  --sidebar-foreground: oklch(0.92 0.01 250);
+  --sidebar-primary: oklch(0.65 0.2 260);
+  --sidebar-primary-foreground: oklch(0.98 0.005 250);
+  --sidebar-accent: oklch(0.22 0.02 260);
+  --sidebar-accent-foreground: oklch(0.92 0.01 250);
+  --sidebar-border: oklch(0.3 0.02 250);
+  --sidebar-ring: oklch(0.65 0.2 260);
+
+  /* Radius — sharp grid feel */
+  --radius: 0.25rem;
+
+  /* Typography */
+  --font-theme: 'JetBrains Mono', 'Fira Code', ui-monospace, monospace;
+  --font-theme-heading: 'JetBrains Mono', 'Fira Code', ui-monospace, monospace;
+
+  /* Theme-specific effects */
+  --theme-glow: 0 0 12px oklch(0.65 0.2 260 / 0.2);
+  --theme-panel-texture: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    oklch(0.15 0.015 250 / 0.3) 2px,
+    oklch(0.15 0.015 250 / 0.3) 3px
+  );
+}

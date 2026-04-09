@@ -1,0 +1,64 @@
+/*
+ * Neon Void — Sci-fi command center
+ * Bright neon accents on deep black, HUD borders with glow, geometric elements
+ */
+[data-theme='neon-void'] {
+  /* Backgrounds — true deep black */
+  --background: oklch(0.05 0 0);
+  --foreground: oklch(0.95 0 0);
+  --card: oklch(0.1 0.005 180);
+  --card-foreground: oklch(0.95 0 0);
+  --popover: oklch(0.1 0.005 180);
+  --popover-foreground: oklch(0.95 0 0);
+
+  /* Primary — electric green */
+  --primary: oklch(0.85 0.28 155);
+  --primary-foreground: oklch(0.08 0.02 155);
+
+  /* Secondary — deep void with green tint */
+  --secondary: oklch(0.15 0.02 155);
+  --secondary-foreground: oklch(0.85 0.28 155);
+
+  /* Muted */
+  --muted: oklch(0.13 0.01 155);
+  --muted-foreground: oklch(0.55 0.08 155);
+
+  /* Accent — hot pink */
+  --accent: oklch(0.65 0.28 340);
+  --accent-foreground: oklch(0.95 0 0);
+
+  --destructive: oklch(0.65 0.28 340);
+
+  /* Borders — neon glow lines */
+  --border: oklch(0.3 0.1 155);
+  --input: oklch(0.18 0.03 155);
+  --ring: oklch(0.85 0.28 155);
+
+  /* Charts */
+  --chart-1: oklch(0.85 0.28 155);
+  --chart-2: oklch(0.65 0.28 340);
+  --chart-3: oklch(0.7 0.2 200);
+  --chart-4: oklch(0.75 0.25 120);
+  --chart-5: oklch(0.6 0.2 280);
+
+  /* Sidebar */
+  --sidebar: oklch(0.07 0.005 155);
+  --sidebar-foreground: oklch(0.95 0 0);
+  --sidebar-primary: oklch(0.85 0.28 155);
+  --sidebar-primary-foreground: oklch(0.08 0.02 155);
+  --sidebar-accent: oklch(0.15 0.03 155);
+  --sidebar-accent-foreground: oklch(0.85 0.28 155);
+  --sidebar-border: oklch(0.3 0.1 155);
+  --sidebar-ring: oklch(0.85 0.28 155);
+
+  /* Radius — sharp geometric */
+  --radius: 0.125rem;
+
+  /* Typography */
+  --font-theme: 'Orbitron', 'Share Tech Mono', system-ui, sans-serif;
+  --font-theme-heading: 'Orbitron', 'Share Tech Mono', system-ui, sans-serif;
+
+  /* Theme-specific effects */
+  --theme-glow: 0 0 20px oklch(0.85 0.28 155 / 0.3), 0 0 40px oklch(0.85 0.28 155 / 0.1);
+  --theme-panel-texture: none;
+}

@@ -19,7 +19,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 5: Audio-Reactive Input** - Web Audio API FFT pipeline as an InputPlugin, with device enumeration, sensitivity controls, and BlackHole virtual device support
 - [ ] **Phase 6: MIDI Controller Mapping** - WebMIDI.js integration as an InputPlugin, CC/note mapping UI, MIDI learn mode, and Safari/iOS graceful degradation
 - [ ] **Phase 7: Video & Camera Input** - Video/image and webcam InputPlugins using OffscreenCanvas + Web Worker, with edge-sampling and face-extraction MappingStrategies
-- [ ] **Phase 8: UI Design Variations & Polish** - 5 distinct dark pro-tool Tailwind themes, theme switcher, accessibility polish, and CI test coverage
+- [x] **Phase 8: UI Design Variations & Polish** - 5 distinct dark pro-tool Tailwind themes, theme switcher, accessibility polish, and CI test coverage
 
 ## Phase Details
 
@@ -182,11 +182,11 @@ Plans:
 **Plans**: 5 plans
 
 Plans:
-- [ ] 08-01: Tailwind theme token system — 5 CSS variable sets (zinc/slate base + distinct accent palettes); shadcn/ui component theming; `UI-01`
-- [ ] 08-02: Theme switcher UI — settings panel theme picker; selected theme persisted to `localStorage`; `UI-02`
-- [ ] 08-03: Keyboard navigation + focus states — tab order audit for all control panel components; visible focus rings; `UI-05`
-- [ ] 08-04: CI test suite — Vitest + MSW virtual cube tests running in GitHub Actions without hardware; visual regression baselines committed; `TEST-05`
-- [ ] 08-05: Final responsive polish — cross-browser test (Chrome, Firefox, Safari) on desktop and phone; edge case layout fixes
+- [x] 08-01: Tailwind theme token system — 5 CSS variable sets (zinc/slate base + distinct accent palettes); shadcn/ui component theming; `UI-01`
+- [x] 08-02: Theme switcher UI — settings panel theme picker; selected theme persisted to `localStorage`; `UI-02`
+- [x] 08-03: Keyboard navigation + focus states — tab order audit for all control panel components; visible focus rings; `UI-05`
+- [x] 08-04: CI test suite — Vitest + MSW virtual cube tests running in GitHub Actions without hardware; visual regression baselines committed; `TEST-05`
+- [x] 08-05: Final responsive polish — cross-browser test (Chrome, Firefox, Safari) on desktop and phone; edge case layout fixes
 
 ## Progress
 
@@ -202,4 +202,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 | 5. Audio-Reactive Input | 0/6 | Not started | - |
 | 6. MIDI Controller Mapping | 0/6 | Not started | - |
 | 7. Video & Camera Input | 0/8 | Not started | - |
-| 8. UI Design Variations & Polish | 0/5 | Not started | - |
+| 8. UI Design Variations & Polish | 5/5 | Complete | 2026-04-09 |

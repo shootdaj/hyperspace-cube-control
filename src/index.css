@@ -3,6 +3,13 @@
 @import "shadcn/tailwind.css";
 @import "@fontsource-variable/geist";
 
+/* Theme CSS custom property sets */
+@import "./themes/midnight-grid.css";
+@import "./themes/neon-void.css";
+@import "./themes/brutalist.css";
+@import "./themes/ember.css";
+@import "./themes/phosphor.css";
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
@@ -127,4 +134,39 @@
   html {
     @apply font-sans;
     }
+
+  /* Theme-aware typography — when a theme is active, use its font */
+  [data-theme] {
+    font-family: var(--font-theme, var(--font-sans));
+  }
+  [data-theme] h1,
+  [data-theme] h2,
+  [data-theme] h3,
+  [data-theme] h4 {
+    font-family: var(--font-theme-heading, var(--font-theme, var(--font-sans)));
+  }
+
+  /* Keyboard focus: visible focus rings on all interactive elements */
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+
+  /* Override for elements that already have focus-visible styles from shadcn */
+  [data-slot='button']:focus-visible,
+  [data-slot='tabs-trigger']:focus-visible,
+  [data-slot='switch']:focus-visible,
+  [data-slot='slider-thumb']:focus-visible {
+    outline: none; /* These use ring-based focus from shadcn */
+  }
+}
+
+/* Theme panel texture overlay utility */
+@layer utilities {
+  .theme-panel-texture {
+    background-image: var(--theme-panel-texture, none);
+  }
+  .theme-glow {
+    box-shadow: var(--theme-glow, none);
+  }
 }
