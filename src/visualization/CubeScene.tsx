@@ -4,6 +4,7 @@ import { OrbitControls } from '@react-three/drei';
 import * as THREE from 'three';
 import { CubeMesh } from './CubeMesh';
 import { LedBloom } from './postprocessing/LedBloom';
+import { paintStore } from '@/stores/paintStore';
 
 /**
  * RendererMonitor — reads renderer.info each frame in dev.
@@ -28,6 +29,33 @@ function RendererMonitor() {
 }
 
 /**
+ * PaintAwareControls — wraps OrbitControls and disables rotation when
+ * paint mode is active so pointer events reach CubeMesh instead.
+ * Zoom always stays enabled for navigation during painting.
+ */
+function PaintAwareControls() {
+  const isPaintMode = paintStore((s) => s.isPaintMode);
+  return (
+    <OrbitControls
+      enableDamping
+      dampingFactor={0.05}
+      minDistance={0.8}
+      maxDistance={3.0}
+      enablePan={false}
+      enableZoom={true}
+      enableRotate={!isPaintMode}
+      rotateSpeed={0.8}
+      zoomSpeed={0.8}
+      touches={{
+        ONE: isPaintMode ? (0 as THREE.TOUCH) : THREE.TOUCH.ROTATE,
+        TWO: THREE.TOUCH.DOLLY_PAN,
+      }}
+      makeDefault
+    />
+  );
+}
+
+/**
  * CubeScene — R3F Canvas shell. Camera, ambient light, OrbitControls.
  *
  * IMPORTANT: Never unmount this component to hide it — use CSS display:none.
@@ -38,29 +66,15 @@ function RendererMonitor() {
  * toneMapping: 0 (NoToneMapping) required for HDR bloom colors to pass through.
  */
 export function CubeScene() {
+  const isPaintMode = paintStore((s) => s.isPaintMode);
   return (
     <Canvas
       camera={{ position: [1.5, 1.5, 1.5], fov: 50, near: 0.01, far: 100 }}
       gl={{ antialias: true, toneMapping: 0 }}
-      style={{ width: '100%', height: '100%' }}
+      style={{ width: '100%', height: '100%', cursor: isPaintMode ? 'crosshair' : 'grab' }}
     >
       <ambientLight intensity={0.05} />
-      <OrbitControls
-        enableDamping
-        dampingFactor={0.05}
-        minDistance={0.8}
-        maxDistance={3.0}
-        enablePan={false}
-        enableZoom={true}
-        enableRotate={true}
-        rotateSpeed={0.8}
-        zoomSpeed={0.8}
-        touches={{
-          ONE: THREE.TOUCH.ROTATE,
-          TWO: THREE.TOUCH.DOLLY_PAN,
-        }}
-        makeDefault
-      />
+      <PaintAwareControls />
       <RendererMonitor />
       <CubeMesh />
       <LedBloom />

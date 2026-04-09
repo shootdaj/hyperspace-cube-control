@@ -6,6 +6,7 @@ import { ColorPickerPanel } from './ColorPickerPanel';
 import { EffectBrowser } from './EffectBrowser';
 import { PaletteBrowser } from './PaletteBrowser';
 import { PresetPanel } from './PresetPanel';
+import { PaintControls } from './PaintControls';
 
 /**
  * ControlPanel — top-level container for all WLED control components.
@@ -26,6 +27,9 @@ export function ControlPanel() {
           <TabsTrigger value="controls" className="min-h-11 px-3 text-xs data-[state=active]:bg-zinc-800 rounded-md">
             Controls
           </TabsTrigger>
+          <TabsTrigger value="paint" className="min-h-11 px-3 text-xs data-[state=active]:bg-zinc-800 rounded-md">
+            Paint
+          </TabsTrigger>
           <TabsTrigger value="effects" className="min-h-11 px-3 text-xs data-[state=active]:bg-zinc-800 rounded-md">
             Effects
           </TabsTrigger>
@@ -44,6 +48,10 @@ export function ControlPanel() {
             <SpeedIntensityPanel />
             <Separator className="bg-zinc-800" />
             <ColorPickerPanel />
+          </TabsContent>
+
+          <TabsContent value="paint" className="p-4 mt-0">
+            <PaintControls />
           </TabsContent>
 
           <TabsContent value="effects" className="p-4 mt-0">
