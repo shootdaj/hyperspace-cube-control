@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ConnectionStatus } from '@/ui/ConnectionStatus';
 import { MixedContentWarning } from '@/ui/MixedContentWarning';
 import { SetupWizard } from '@/setup/SetupWizard';
@@ -6,6 +6,7 @@ import { CubeScene } from '@/visualization/CubeScene';
 import { connectionStore } from '@/core/store/connectionStore';
 import { uiStore } from '@/core/store/uiStore';
 import { WLEDWebSocketService } from '@/core/wled/WLEDWebSocketService';
+import { startLiveSync } from '@/core/pipeline/WLEDLiveSync';
 
 const WIZARD_STORAGE_KEY = 'wizardCompleted';
 
@@ -13,6 +14,14 @@ export default function App() {
   const [wizardDone, setWizardDone] = useState(
     () => localStorage.getItem(WIZARD_STORAGE_KEY) === 'true',
   );
+  const status = connectionStore((state) => state.status);
+
+  // Start live LED sync when connected — CubeMesh.useFrame picks up changes automatically
+  useEffect(() => {
+    if (status !== 'connected') return;
+    const stopSync = startLiveSync();
+    return stopSync;
+  }, [status]);
 
   function handleWizardComplete(ip: string) {
     localStorage.setItem(WIZARD_STORAGE_KEY, 'true');
