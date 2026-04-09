@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { ledStateProxy } from '@/core/store/ledStateProxy';
 import { startLiveSync } from '../WLEDLiveSync';
 import type { WLEDMessage, WLEDLiveMessage } from '@/core/wled/types';
