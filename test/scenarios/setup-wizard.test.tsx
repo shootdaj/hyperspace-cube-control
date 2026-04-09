@@ -87,7 +87,8 @@ describe('Setup Wizard Scenarios', () => {
 
     // Main UI should be visible
     expect(screen.getByText('HyperCube Control')).toBeInTheDocument();
-    expect(screen.getByText(/Cube connected/i)).toBeInTheDocument();
+    // CubeScene renders a canvas element when wizard is complete
+    expect(document.querySelector('canvas')).toBeInTheDocument();
   });
 
   it('TestSetupWizard_AfterCompletion_ConnectionStatusVisible', async () => {
