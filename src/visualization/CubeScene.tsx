@@ -3,6 +3,7 @@ import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import * as THREE from 'three';
 import { CubeMesh } from './CubeMesh';
+import { LedBloom } from './postprocessing/LedBloom';
 
 /**
  * RendererMonitor — reads renderer.info each frame in dev.
@@ -62,7 +63,7 @@ export function CubeScene() {
       />
       <RendererMonitor />
       <CubeMesh />
-      {/* EffectComposer + Bloom added in 02-05 */}
+      <LedBloom />
     </Canvas>
   );
 }
