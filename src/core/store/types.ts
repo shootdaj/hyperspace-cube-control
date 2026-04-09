@@ -18,10 +18,25 @@ export interface CubeSegment {
   pal: number; // palette index
 }
 
+/** Incoming WLED segment with possible RGBW colors (4-element arrays from WLED API) */
+export interface WLEDIncomingSegment {
+  id: number;
+  start: number;
+  stop: number;
+  len: number;
+  on: boolean;
+  bri: number;
+  col: Array<number[]>;  // WLED sends [R,G,B] or [R,G,B,W]
+  fx: number;
+  sx: number;
+  ix: number;
+  pal: number;
+}
+
 /** Full WLED /json/state shape (partial -- fields relevant to this app) */
 export interface WLEDState {
   on: boolean;
   bri: number;
   transition?: number;
-  seg: CubeSegment[];
+  seg: WLEDIncomingSegment[];
 }

@@ -1,12 +1,13 @@
 import { WLEDWebSocketService } from './WLEDWebSocketService';
 import { cubeStateStore } from '@/core/store/cubeStateStore';
-import type { WLEDMessage, WLEDState } from './types';
+import type { WLEDMessage } from './types';
+import type { WLEDState as StoreWLEDState } from '@/core/store/types';
 
 /**
  * Type guard: is this a full state+info message from WLED?
  * WLED sends these on connect and after any state change.
  */
-function isStateMessage(msg: WLEDMessage): msg is { state: WLEDState; info: unknown } {
+function isStateMessage(msg: WLEDMessage): msg is { state: StoreWLEDState; info: unknown } {
   return 'state' in msg && typeof (msg as Record<string, unknown>).state === 'object';
 }
 

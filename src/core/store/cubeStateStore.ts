@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { WLEDState, CubeSegment, WLEDColor } from './types';
+import type { WLEDState, WLEDColor, WLEDIncomingSegment } from './types';
 
 interface CubeStateStore {
   on: boolean;
@@ -9,7 +9,7 @@ interface CubeStateStore {
   speed: number;
   intensity: number;
   colors: WLEDColor[];
-  segments: CubeSegment[];
+  segments: WLEDIncomingSegment[];
   firmwareVersion: string;
   ledCount: number;
   // Actions

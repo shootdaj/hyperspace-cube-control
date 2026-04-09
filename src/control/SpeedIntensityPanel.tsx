@@ -17,24 +17,26 @@ export function SpeedIntensityPanel() {
   const intensityDebounce = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const handleSpeedChange = useCallback(
-    (value: number[]) => {
+    (value: number | readonly number[]) => {
       if (!ip) return;
-      cubeStateStore.getState().setSpeed(value[0]);
+      const v = Array.isArray(value) ? value[0] : value;
+      cubeStateStore.getState().setSpeed(v);
       if (speedDebounce.current) clearTimeout(speedDebounce.current);
       speedDebounce.current = setTimeout(() => {
-        WLEDControlService.getInstance(ip).setSpeed(value[0]);
+        WLEDControlService.getInstance(ip).setSpeed(v);
       }, 100);
     },
     [ip],
   );
 
   const handleIntensityChange = useCallback(
-    (value: number[]) => {
+    (value: number | readonly number[]) => {
       if (!ip) return;
-      cubeStateStore.getState().setIntensity(value[0]);
+      const v = Array.isArray(value) ? value[0] : value;
+      cubeStateStore.getState().setIntensity(v);
       if (intensityDebounce.current) clearTimeout(intensityDebounce.current);
       intensityDebounce.current = setTimeout(() => {
-        WLEDControlService.getInstance(ip).setIntensity(value[0]);
+        WLEDControlService.getInstance(ip).setIntensity(v);
       }, 100);
     },
     [ip],

@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { startStateSync } from '../WLEDStateSync';
 import { cubeStateStore } from '@/core/store/cubeStateStore';
-import { WLEDWebSocketService } from '../WLEDWebSocketService';
 import type { WLEDMessage } from '../types';
 
 // Capture subscribers registered with the WebSocket service

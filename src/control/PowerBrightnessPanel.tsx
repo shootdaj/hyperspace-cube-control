@@ -25,15 +25,16 @@ export function PowerBrightnessPanel() {
   }, [on, ip]);
 
   const handleBrightnessChange = useCallback(
-    (value: number[]) => {
+    (value: number | readonly number[]) => {
       if (!ip) return;
+      const v = Array.isArray(value) ? value[0] : value;
       // Optimistic store update immediately
-      cubeStateStore.getState().setBrightness(value[0]);
+      cubeStateStore.getState().setBrightness(v);
       // Debounce the REST call
       if (debounceRef.current) clearTimeout(debounceRef.current);
       debounceRef.current = setTimeout(() => {
         const service = WLEDControlService.getInstance(ip);
-        service.setBrightness(value[0]);
+        service.setBrightness(v);
       }, 100);
     },
     [ip],
