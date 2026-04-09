@@ -1,6 +1,7 @@
 import { useRef } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
+import * as THREE from 'three';
 import { CubeMesh } from './CubeMesh';
 
 /**
@@ -49,6 +50,14 @@ export function CubeScene() {
         minDistance={0.8}
         maxDistance={3.0}
         enablePan={false}
+        enableZoom={true}
+        enableRotate={true}
+        rotateSpeed={0.8}
+        zoomSpeed={0.8}
+        touches={{
+          ONE: THREE.TOUCH.ROTATE,
+          TWO: THREE.TOUCH.DOLLY_PAN,
+        }}
         makeDefault
       />
       <RendererMonitor />
