@@ -8,6 +8,7 @@ import { PaletteBrowser } from './PaletteBrowser';
 import { PresetPanel } from './PresetPanel';
 import { PaintControls } from './PaintControls';
 import { AudioControls } from './AudioControls';
+import { MIDIControls } from './MIDIControls';
 
 /**
  * ControlPanel — top-level container for all WLED control components.
@@ -43,6 +44,9 @@ export function ControlPanel() {
           <TabsTrigger value="audio" className="min-h-11 px-3 text-xs data-[state=active]:bg-zinc-800 rounded-md">
             Audio
           </TabsTrigger>
+          <TabsTrigger value="midi" className="min-h-11 px-3 text-xs data-[state=active]:bg-zinc-800 rounded-md">
+            MIDI
+          </TabsTrigger>
         </TabsList>
 
         <div className="flex-1 overflow-y-auto min-h-0">
@@ -72,6 +76,10 @@ export function ControlPanel() {
 
           <TabsContent value="audio" className="p-4 mt-0">
             <AudioControls />
+          </TabsContent>
+
+          <TabsContent value="midi" className="p-4 mt-0">
+            <MIDIControls />
           </TabsContent>
         </div>
       </Tabs>
