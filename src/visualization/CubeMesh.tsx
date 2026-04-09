@@ -3,7 +3,7 @@ import { useFrame, type ThreeEvent } from '@react-three/fiber';
 import * as THREE from 'three';
 import { ledStateProxy } from '@/core/store/ledStateProxy';
 import { computeLEDPositions } from './cubeGeometry';
-import { paintPlugin } from '@/plugins/inputs/paintSingleton';
+import { paintPlugin, paintOutput } from '@/plugins/inputs/paintSingleton';
 import { paintStore } from '@/stores/paintStore';
 import { getEdgeIndex, getEdgeFaces } from '@/plugins/inputs/cubeTopology';
 
@@ -38,6 +38,9 @@ function applyPaint(ledIndex: number): void {
   // for instant visual feedback (next useFrame will render it)
   ledStateProxy.colors.set(paintPlugin.getBuffer());
   ledStateProxy.lastUpdated = performance.now();
+
+  // Async send to physical cube — diff-based, throttled to 30fps
+  paintOutput.sendPaint(paintPlugin.getBuffer());
 }
 
 /**

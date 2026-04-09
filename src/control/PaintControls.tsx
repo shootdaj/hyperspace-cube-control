@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { paintStore, type BrushSize } from '@/stores/paintStore';
-import { paintPlugin } from '@/plugins/inputs/paintSingleton';
+import { paintPlugin, paintOutput } from '@/plugins/inputs/paintSingleton';
 import { ledStateProxy } from '@/core/store/ledStateProxy';
 
 /**
@@ -66,6 +66,7 @@ export function PaintControls() {
     paintPlugin.fill(0, 0, 0);
     ledStateProxy.colors.set(paintPlugin.getBuffer());
     ledStateProxy.lastUpdated = performance.now();
+    paintOutput.sendAll(paintPlugin.getBuffer());
   }, []);
 
   const handleFill = useCallback(() => {
@@ -73,6 +74,7 @@ export function PaintControls() {
     paintPlugin.fill(r, g, b);
     ledStateProxy.colors.set(paintPlugin.getBuffer());
     ledStateProxy.lastUpdated = performance.now();
+    paintOutput.sendAll(paintPlugin.getBuffer());
   }, []);
 
   return (

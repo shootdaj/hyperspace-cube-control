@@ -7,5 +7,7 @@
  * - Simple import access from both CubeMesh and PaintControls
  */
 import { ManualPaintPlugin } from './ManualPaintPlugin';
+import { WLEDPaintOutput } from '@/plugins/outputs/WLEDPaintOutput';
 
 export const paintPlugin = new ManualPaintPlugin();
+export const paintOutput = new WLEDPaintOutput();
