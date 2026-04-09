@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { ledStateProxy } from '@/core/store/ledStateProxy';
 import { startLiveSync } from '../WLEDLiveSync';
+import { paintStore } from '@/stores/paintStore';
 import type { WLEDMessage, WLEDLiveMessage } from '@/core/wled/types';
 
 // Track subscribers and mock send
@@ -10,6 +11,7 @@ const mockRequestLiveStream = vi.fn();
 vi.mock('@/core/wled/WLEDWebSocketService', () => ({
   WLEDWebSocketService: {
     getInstance: () => ({
+      isWsAvailable: () => true,
       subscribe: (fn: (msg: WLEDMessage) => void) => {
         subscribers.push(fn);
         return () => {
@@ -31,6 +33,7 @@ describe('WLEDLiveSync', () => {
     mockRequestLiveStream.mockClear();
     ledStateProxy.colors.fill(0);
     ledStateProxy.lastUpdated = 0;
+    paintStore.setState({ isPaintMode: false });
   });
 
   it('TestWLEDLiveSync_ParsesHexToRGB_CorrectColors', () => {
@@ -123,6 +126,36 @@ describe('WLEDLiveSync', () => {
     const msg: WLEDLiveMessage = { leds: ['FF0000'], n: 1 };
     emitMessage(msg);
 
+    expect(ledStateProxy.lastUpdated).toBeGreaterThan(0);
+
+    cleanup();
+  });
+
+  it('TestWLEDLiveSync_SkipsUpdate_WhenPaintModeActive', () => {
+    paintStore.setState({ isPaintMode: true });
+    const cleanup = startLiveSync();
+
+    const msg: WLEDLiveMessage = { leds: ['FF0000'], n: 1 };
+    emitMessage(msg);
+
+    // Colors and lastUpdated must remain at their initial (zero) values
+    expect(ledStateProxy.colors[0]).toBe(0);
+    expect(ledStateProxy.lastUpdated).toBe(0);
+
+    cleanup();
+  });
+
+  it('TestWLEDLiveSync_UpdatesColors_WhenPaintModeInactive', () => {
+    paintStore.setState({ isPaintMode: false });
+    const cleanup = startLiveSync();
+
+    const msg: WLEDLiveMessage = { leds: ['FF0000'], n: 1 };
+    emitMessage(msg);
+
+    // Colors should be updated normally when paint mode is off
+    expect(ledStateProxy.colors[0]).toBe(255);
+    expect(ledStateProxy.colors[1]).toBe(0);
+    expect(ledStateProxy.colors[2]).toBe(0);
     expect(ledStateProxy.lastUpdated).toBeGreaterThan(0);
 
     cleanup();
