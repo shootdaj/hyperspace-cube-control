@@ -1,6 +1,5 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { WLEDPaintOutput } from '../WLEDPaintOutput';
-import { WLEDWebSocketService } from '@/core/wled/WLEDWebSocketService';
 
 // Stable mock send function shared across all getInstance() calls
 const mockSend = vi.fn();
@@ -13,7 +12,7 @@ vi.mock('@/core/wled/WLEDWebSocketService', () => ({
   },
 }));
 
-function getMockSend() {
+function getMockSend(): ReturnType<typeof vi.fn> {
   return mockSend;
 }
 
