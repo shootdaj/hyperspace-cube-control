@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mkdir -p /Users/anshul/Anshul/Code/hyperspace-cube-control/.claude/skills)",
+      "Bash(ln -s /Users/anshul/.claude/plugins/cache/claude-plugins-official/frontend-design /Users/anshul/Anshul/Code/hyperspace-cube-control/.claude/skills/frontend-design)",
+      "Bash(rtk ls:*)"
+    ]
+  }
+}
