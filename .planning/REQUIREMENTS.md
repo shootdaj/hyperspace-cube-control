@@ -9,13 +9,13 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Connection & Communication
 
-- [ ] **CONN-01**: App discovers or accepts manual entry of HyperCube IP address
+- [x] **CONN-01**: App discovers or accepts manual entry of HyperCube IP address
 - [ ] **CONN-02**: App connects to WLED via WebSocket singleton (shared across all components)
-- [ ] **CONN-03**: App displays real-time connection health indicator (connected/reconnecting/disconnected)
+- [x] **CONN-03**: App displays real-time connection health indicator (connected/reconnecting/disconnected)
 - [ ] **CONN-04**: App auto-reconnects on WebSocket disconnect with exponential backoff
 - [ ] **CONN-05**: App serializes WLED API requests to avoid overloading ESP32 (request queue)
 - [ ] **CONN-06**: App detects HTTP/HTTPS mismatch and warns user with clear instructions
-- [ ] **CONN-07**: App reads cube state (on/off, brightness, current effect, palette, colors) via JSON API
+- [x] **CONN-07**: App reads cube state (on/off, brightness, current effect, palette, colors) via JSON API
 
 ### 3D Visualization
 
@@ -28,13 +28,13 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Plugin Architecture
 
-- [ ] **PLUG-01**: InputPlugin interface defined — any input source implements `start()`, `stop()`, `getFrame(): Uint8Array`
-- [ ] **PLUG-02**: MappingStrategy interface defined — transforms input data to 480-LED color array
-- [ ] **PLUG-03**: OutputPlugin interface defined — sends LED data to cube via any protocol
+- [x] **PLUG-01**: InputPlugin interface defined — any input source implements `start()`, `stop()`, `getFrame(): Uint8Array`
+- [x] **PLUG-02**: MappingStrategy interface defined — transforms input data to 480-LED color array
+- [x] **PLUG-03**: OutputPlugin interface defined — sends LED data to cube via any protocol
 - [ ] **PLUG-04**: PipelineEngine orchestrates input → mapping → output at configurable frame rate
 - [ ] **PLUG-05**: Plugins can be swapped at runtime without restarting the pipeline
-- [ ] **PLUG-06**: Each plugin is independently testable with mocked pipeline context
-- [ ] **PLUG-07**: Plugin registry allows dynamic registration and enumeration of available plugins
+- [x] **PLUG-06**: Each plugin is independently testable with mocked pipeline context
+- [x] **PLUG-07**: Plugin registry allows dynamic registration and enumeration of available plugins
 
 ### Manual LED Painting
 
@@ -126,7 +126,7 @@ Requirements for initial release. Each maps to roadmap phases.
 ### Testing & Quality
 
 - [ ] **TEST-01**: Virtual cube mock that simulates WLED API responses for all tests
-- [ ] **TEST-02**: Unit tests for each plugin interface contract
+- [x] **TEST-02**: Unit tests for each plugin interface contract
 - [ ] **TEST-03**: Integration tests for pipeline (input → mapping → output)
 - [ ] **TEST-04**: Visual regression tests for 3D cube rendering
 - [ ] **TEST-05**: All tests pass in CI without physical hardware
@@ -170,18 +170,18 @@ Deferred to future release. Tracked but not in current roadmap.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| CONN-01 | Phase 1 | Pending |
+| CONN-01 | Phase 1 | Complete |
 | CONN-02 | Phase 1 | Pending |
-| CONN-03 | Phase 1 | Pending |
+| CONN-03 | Phase 1 | Complete |
 | CONN-04 | Phase 1 | Pending |
 | CONN-05 | Phase 1 | Pending |
 | CONN-06 | Phase 1 | Pending |
-| CONN-07 | Phase 1 | Pending |
-| PLUG-01 | Phase 1 | Pending |
-| PLUG-02 | Phase 1 | Pending |
-| PLUG-03 | Phase 1 | Pending |
-| PLUG-06 | Phase 1 | Pending |
-| PLUG-07 | Phase 1 | Pending |
+| CONN-07 | Phase 1 | Complete |
+| PLUG-01 | Phase 1 | Complete |
+| PLUG-02 | Phase 1 | Complete |
+| PLUG-03 | Phase 1 | Complete |
+| PLUG-06 | Phase 1 | Complete |
+| PLUG-07 | Phase 1 | Complete |
 | DEP-01 | Phase 1 | Complete |
 | DEP-02 | Phase 1 | Complete |
 | DEP-03 | Phase 1 | Pending |
@@ -192,7 +192,7 @@ Deferred to future release. Tracked but not in current roadmap.
 | SETUP-05 | Phase 1 | Pending |
 | SETUP-06 | Phase 1 | Pending |
 | TEST-01 | Phase 1 | Pending |
-| TEST-02 | Phase 1 | Pending |
+| TEST-02 | Phase 1 | Complete |
 | VIZ-01 | Phase 2 | Pending |
 | VIZ-02 | Phase 2 | Pending |
 | VIZ-03 | Phase 2 | Pending |
