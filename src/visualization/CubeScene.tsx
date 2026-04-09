@@ -1,6 +1,7 @@
 import { useRef } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
+import { CubeMesh } from './CubeMesh';
 
 /**
  * RendererMonitor — reads renderer.info each frame in dev.
@@ -51,7 +52,7 @@ export function CubeScene() {
         makeDefault
       />
       <RendererMonitor />
-      {/* CubeMesh added in 02-02 */}
+      <CubeMesh />
       {/* EffectComposer + Bloom added in 02-05 */}
     </Canvas>
   );
