@@ -33,7 +33,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. The app detects HTTP/HTTPS mismatch and shows a clear, actionable warning explaining the mixed-content constraint
   4. `InputPlugin`, `MappingStrategy`, `OutputPlugin`, and `FrameData` TypeScript interfaces exist in the codebase and each has a passing unit test verifying the contract
   5. First-launch setup wizard guides a new user from blank screen to confirmed connection, and does not reappear after completion
-**Plans**: TBD
+**Plans**: 9 plans
 
 Plans:
 - [ ] 01-01: Project scaffold — Vite + React 19 + TypeScript 5 + Tailwind CSS 4 + shadcn/ui init; Vercel config; directory structure for plugin architecture
@@ -56,7 +56,7 @@ Plans:
   3. The 3D view sustains 30fps+ without frame drops, verified by `renderer.info` monitoring with no GPU memory leaks
   4. The bloom/glow effect is visible on lit LEDs, giving visual fidelity to the infinity mirror aesthetic
   5. Swapping the active InputPlugin or OutputPlugin at runtime does not stop or restart the pipeline — the PipelineEngine continues its RAF loop
-**Plans**: TBD
+**Plans**: 8 plans
 
 Plans:
 - [ ] 02-01: R3F canvas setup — `@react-three/fiber` v9 canvas with `@react-three/drei` and `@react-three/postprocessing`; camera rig with orbit controls; `renderer.info` monitoring
@@ -78,7 +78,7 @@ Plans:
   3. User can browse WLED color palettes, apply one, and set up to 3 simultaneous colors via color pickers
   4. User can save the current cube state as a named preset, reload it with one tap, and the preset survives a browser refresh
   5. All controls are reachable on a 375px-wide phone screen with 44px+ touch targets; layout adapts between stacked (phone) and multi-panel (desktop)
-**Plans**: TBD
+**Plans**: 7 plans
 
 Plans:
 - [ ] 03-01: WLED state round-trip — `CTRL-07` wiring: Zustand `cubeStateStore` updates from WebSocket; outgoing changes batched and dispatched through the serialized REST client; never calling WLED directly from components
@@ -99,7 +99,7 @@ Plans:
   3. Brush size selector controls whether paint applies to single LED, full edge, or face-adjacent edges
   4. Painted state is visible on the physical cube with perceived latency under 50ms from pointer release
   5. User can clear all LEDs to black or a chosen solid color in one action
-**Plans**: TBD
+**Plans**: 5 plans
 
 Plans:
 - [ ] 04-01: Raycasting paint targeting — Three.js raycaster against `InstancedMesh`; pointer-down and pointer-move events on the R3F canvas; identify LED index from instance ID
@@ -118,7 +118,7 @@ Plans:
   3. User can adjust audio sensitivity/gain and see the cube's reaction scale accordingly
   4. The AudioContext initializes only after a user gesture — no silent failure or suspended-state hang
   5. The audio plugin can be swapped in/out of the pipeline at runtime without restarting the RAF loop
-**Plans**: TBD
+**Plans**: 6 plans
 
 Plans:
 - [ ] 05-01: Audio device enumeration — `navigator.mediaDevices.enumerateDevices()` on user gesture; dropdown listing mic + system audio + BlackHole virtual devices; `AUD-01`
@@ -138,7 +138,7 @@ Plans:
   3. User can map a MIDI note-on event to activate a saved preset or switch effects
   4. MIDI mapping configuration survives a browser refresh when saved
   5. On Safari or iOS, the app shows a clear "MIDI not supported on this browser" message rather than silently failing
-**Plans**: TBD
+**Plans**: 6 plans
 
 Plans:
 - [ ] 06-01: WebMIDI.js integration — `webmidi` v3 init with feature detection; device enumeration; Chrome permission gate handling; `MIDI-01`
@@ -159,7 +159,7 @@ Plans:
   4. Motion sensitivity threshold is adjustable and the cube's reaction scales accordingly
   5. Video and webcam processing does not block the main thread — no jank in the UI or 3D view during active video mapping
   6. Camera permission prompts are handled gracefully with clear UI guidance for grant and deny states
-**Plans**: TBD
+**Plans**: 8 plans
 
 Plans:
 - [ ] 07-01: Web Worker + OffscreenCanvas architecture — `VideoProcessorWorker.ts`; `transferable Uint8Array` message protocol design; main-thread plugin wrapper passes frames to worker via `postMessage`
@@ -179,7 +179,7 @@ Plans:
   1. User can switch between 5 visually distinct dark themes in settings — each has a different accent palette and feels like a different pro-tool aesthetic
   2. All interactive controls are reachable via keyboard navigation with visible focus states
   3. All automated tests (unit, integration, visual regression) pass in CI with no physical hardware required
-**Plans**: TBD
+**Plans**: 5 plans
 
 Plans:
 - [ ] 08-01: Tailwind theme token system — 5 CSS variable sets (zinc/slate base + distinct accent palettes); shadcn/ui component theming; `UI-01`
