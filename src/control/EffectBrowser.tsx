@@ -71,7 +71,7 @@ export function EffectBrowser() {
             </button>
           ))}
           {filteredEffects.length === 0 && (
-            <p className="text-sm text-zinc-500 py-4 text-center">
+            <p className="text-sm text-muted-foreground py-4 text-center">
               No effects found
             </p>
           )}

@@ -50,7 +50,7 @@ export function SpeedIntensityPanel() {
           <Label htmlFor="speed-slider" className="text-sm font-medium">
             Speed
           </Label>
-          <span className="text-sm text-zinc-400 tabular-nums w-8 text-right">
+          <span className="text-sm text-muted-foreground tabular-nums w-8 text-right">
             {speed}
           </span>
         </div>
@@ -71,7 +71,7 @@ export function SpeedIntensityPanel() {
           <Label htmlFor="intensity-slider" className="text-sm font-medium">
             Intensity
           </Label>
-          <span className="text-sm text-zinc-400 tabular-nums w-8 text-right">
+          <span className="text-sm text-muted-foreground tabular-nums w-8 text-right">
             {intensity}
           </span>
         </div>

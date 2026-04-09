@@ -61,7 +61,7 @@ export function PowerBrightnessPanel() {
           <Label htmlFor="brightness-slider" className="text-sm font-medium">
             Brightness
           </Label>
-          <span className="text-sm text-zinc-400 tabular-nums w-8 text-right">
+          <span className="text-sm text-muted-foreground tabular-nums w-8 text-right">
             {brightness}
           </span>
         </div>

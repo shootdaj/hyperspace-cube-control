@@ -119,10 +119,10 @@ export function MIDIControls() {
         <div className="flex items-center gap-2">
           <span
             className={`inline-block h-2 w-2 rounded-full ${
-              isEnabled ? 'bg-green-500' : 'bg-zinc-600'
+              isEnabled ? 'bg-green-500' : 'bg-muted'
             }`}
           />
-          <span className="text-xs text-zinc-400">
+          <span className="text-xs text-muted-foreground">
             {isEnabled
               ? `MIDI active — ${devices.length} device${devices.length !== 1 ? 's' : ''} connected`
               : 'MIDI not enabled'}
@@ -157,7 +157,7 @@ export function MIDIControls() {
 
       {isEnabled && (
         <>
-          <Separator className="bg-zinc-800" />
+          <Separator className="bg-border" />
 
           {/* Device Selector */}
           <div className="space-y-2">
@@ -166,7 +166,7 @@ export function MIDIControls() {
               aria-label="MIDI Input Device"
               value={selectedDeviceId ?? ''}
               onChange={handleDeviceChange}
-              className="w-full min-h-11 px-3 rounded-md border border-zinc-700 bg-zinc-900 text-zinc-200 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-500"
+              className="w-full min-h-11 px-3 rounded-md border border-border bg-card text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-ring"
             >
               <option value="">All Devices</option>
               {devices.map((device) => (
@@ -177,12 +177,12 @@ export function MIDIControls() {
             </select>
           </div>
 
-          <Separator className="bg-zinc-800" />
+          <Separator className="bg-border" />
 
           {/* CC Mappings */}
           <div className="space-y-2">
             <Label className="text-sm font-medium">CC Knob/Slider Mapping</Label>
-            <p className="text-xs text-zinc-500">Click "Learn" then move a knob/slider on your MIDI controller.</p>
+            <p className="text-xs text-muted-foreground">Click "Learn" then move a knob/slider on your MIDI controller.</p>
             <div className="space-y-2">
               {CC_TARGETS.map((target) => {
                 const mapping = ccMappings.find((m) => m.target === target.value);
@@ -197,11 +197,11 @@ export function MIDIControls() {
                         ? 'border-amber-500 bg-amber-950/20'
                         : mapping
                           ? 'border-green-700/50 bg-green-950/10'
-                          : 'border-zinc-700'
+                          : 'border-border'
                     }`}
                   >
                     <div className="flex-1">
-                      <span className="text-xs font-medium text-zinc-200">{target.label}</span>
+                      <span className="text-xs font-medium text-foreground">{target.label}</span>
                       {mapping && (
                         <span className="ml-2 text-[10px] text-green-400 font-mono">
                           CC{mapping.cc} Ch{mapping.channel}
@@ -221,7 +221,7 @@ export function MIDIControls() {
                         className={`min-h-8 text-xs ${
                           isLearning
                             ? 'bg-amber-600 hover:bg-amber-700 text-white'
-                            : 'border-zinc-600 text-zinc-300'
+                            : 'border-border text-foreground/80'
                         }`}
                         onClick={() => handleLearnCC(target.value)}
                       >
@@ -232,7 +232,7 @@ export function MIDIControls() {
                           aria-label={`Remove ${target.label} mapping`}
                           variant="outline"
                           size="sm"
-                          className="min-h-8 text-xs border-zinc-600 text-zinc-400 hover:text-red-400 hover:border-red-700"
+                          className="min-h-8 text-xs border-border text-muted-foreground hover:text-red-400 hover:border-red-700"
                           onClick={() => handleRemoveCCMapping(mapping.channel, mapping.cc)}
                         >
                           X
@@ -245,14 +245,14 @@ export function MIDIControls() {
             </div>
           </div>
 
-          <Separator className="bg-zinc-800" />
+          <Separator className="bg-border" />
 
           {/* Note Mappings — Presets */}
           <div className="space-y-2">
             <Label className="text-sm font-medium">Note-to-Preset Mapping</Label>
-            <p className="text-xs text-zinc-500">Click "Learn" then press a key on your MIDI controller to bind it to a preset.</p>
+            <p className="text-xs text-muted-foreground">Click "Learn" then press a key on your MIDI controller to bind it to a preset.</p>
             {presets.length === 0 ? (
-              <p className="text-xs text-zinc-600 italic">No presets saved. Save presets in the Presets tab first.</p>
+              <p className="text-xs text-muted-foreground/70 italic">No presets saved. Save presets in the Presets tab first.</p>
             ) : (
               <div className="space-y-1 max-h-40 overflow-y-auto">
                 {presets.slice(0, 16).map((preset, index) => {
@@ -272,11 +272,11 @@ export function MIDIControls() {
                           ? 'border-amber-500 bg-amber-950/20'
                           : mapping
                             ? 'border-green-700/50 bg-green-950/10'
-                            : 'border-zinc-800'
+                            : 'border-border'
                       }`}
                     >
                       <div className="flex-1 min-w-0">
-                        <span className="text-xs text-zinc-300 truncate block">{preset.name}</span>
+                        <span className="text-xs text-foreground/80 truncate block">{preset.name}</span>
                         {mapping && (
                           <span className="text-[10px] text-green-400 font-mono">
                             Note {mapping.note} Ch{mapping.channel}
@@ -296,7 +296,7 @@ export function MIDIControls() {
                           className={`min-h-7 h-7 text-[10px] px-2 ${
                             isLearning
                               ? 'bg-amber-600 hover:bg-amber-700 text-white'
-                              : 'border-zinc-700 text-zinc-400'
+                              : 'border-border text-muted-foreground'
                           }`}
                           onClick={() => handleLearnNote('preset', index)}
                         >
@@ -307,7 +307,7 @@ export function MIDIControls() {
                             aria-label={`Remove preset ${preset.name} mapping`}
                             variant="outline"
                             size="sm"
-                            className="min-h-7 h-7 text-[10px] px-2 border-zinc-700 text-zinc-400 hover:text-red-400"
+                            className="min-h-7 h-7 text-[10px] px-2 border-border text-muted-foreground hover:text-red-400"
                             onClick={() => handleRemoveNoteMapping(mapping.channel, mapping.note)}
                           >
                             X
@@ -321,14 +321,14 @@ export function MIDIControls() {
             )}
           </div>
 
-          <Separator className="bg-zinc-800" />
+          <Separator className="bg-border" />
 
           {/* Note Mappings — Effects */}
           <div className="space-y-2">
             <Label className="text-sm font-medium">Note-to-Effect Mapping</Label>
-            <p className="text-xs text-zinc-500">Bind MIDI notes to switch between effects.</p>
+            <p className="text-xs text-muted-foreground">Bind MIDI notes to switch between effects.</p>
             {effects.length === 0 ? (
-              <p className="text-xs text-zinc-600 italic">Connect to cube to load effects.</p>
+              <p className="text-xs text-muted-foreground/70 italic">Connect to cube to load effects.</p>
             ) : (
               <div className="space-y-1 max-h-40 overflow-y-auto">
                 {effects.slice(0, 24).map((effect, index) => {
@@ -348,11 +348,11 @@ export function MIDIControls() {
                           ? 'border-amber-500 bg-amber-950/20'
                           : mapping
                             ? 'border-green-700/50 bg-green-950/10'
-                            : 'border-zinc-800'
+                            : 'border-border'
                       }`}
                     >
                       <div className="flex-1 min-w-0">
-                        <span className="text-xs text-zinc-300 truncate block">{effect}</span>
+                        <span className="text-xs text-foreground/80 truncate block">{effect}</span>
                         {mapping && (
                           <span className="text-[10px] text-green-400 font-mono">
                             Note {mapping.note} Ch{mapping.channel}
@@ -372,7 +372,7 @@ export function MIDIControls() {
                           className={`min-h-7 h-7 text-[10px] px-2 ${
                             isLearning
                               ? 'bg-amber-600 hover:bg-amber-700 text-white'
-                              : 'border-zinc-700 text-zinc-400'
+                              : 'border-border text-muted-foreground'
                           }`}
                           onClick={() => handleLearnNote('effect', index)}
                         >
@@ -383,7 +383,7 @@ export function MIDIControls() {
                             aria-label={`Remove effect ${effect} mapping`}
                             variant="outline"
                             size="sm"
-                            className="min-h-7 h-7 text-[10px] px-2 border-zinc-700 text-zinc-400 hover:text-red-400"
+                            className="min-h-7 h-7 text-[10px] px-2 border-border text-muted-foreground hover:text-red-400"
                             onClick={() => handleRemoveNoteMapping(mapping.channel, mapping.note)}
                           >
                             X
@@ -397,13 +397,13 @@ export function MIDIControls() {
             )}
           </div>
 
-          <Separator className="bg-zinc-800" />
+          <Separator className="bg-border" />
 
           {/* Save/Clear Mappings */}
           <div className="flex gap-2">
             <Button
               aria-label="Save MIDI Mappings"
-              className="flex-1 min-h-11 text-sm font-medium bg-zinc-700 hover:bg-zinc-600 text-white"
+              className="flex-1 min-h-11 text-sm font-medium bg-secondary hover:bg-secondary/80 text-foreground"
               onClick={handleSave}
             >
               Save Mappings
@@ -411,7 +411,7 @@ export function MIDIControls() {
             <Button
               aria-label="Clear All Mappings"
               variant="outline"
-              className="flex-1 min-h-11 text-sm font-medium border-zinc-700 text-zinc-400 hover:text-red-400 hover:border-red-700"
+              className="flex-1 min-h-11 text-sm font-medium border-border text-muted-foreground hover:text-red-400 hover:border-red-700"
               onClick={handleClear}
             >
               Clear All

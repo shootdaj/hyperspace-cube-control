@@ -67,10 +67,10 @@ export function CameraControls() {
                 ? 'bg-green-500'
                 : permissionState === 'denied'
                   ? 'bg-red-500'
-                  : 'bg-zinc-600'
+                  : 'bg-muted'
             }`}
           />
-          <span className="text-xs text-zinc-400">
+          <span className="text-xs text-muted-foreground">
             {isActive
               ? 'Camera active — detecting motion'
               : permissionState === 'denied'
@@ -107,7 +107,7 @@ export function CameraControls() {
         )}
       </div>
 
-      <Separator className="bg-zinc-800" />
+      <Separator className="bg-border" />
 
       {/* Device Selector */}
       <div className="space-y-2">
@@ -116,7 +116,7 @@ export function CameraControls() {
           aria-label="Camera Source"
           value={selectedDeviceId ?? ''}
           onChange={handleDeviceChange}
-          className="w-full min-h-11 px-3 rounded-md border border-zinc-700 bg-zinc-900 text-zinc-200 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-500"
+          className="w-full min-h-11 px-3 rounded-md border border-border bg-card text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-ring"
         >
           <option value="">Default Camera</option>
           {devices.map((device) => (
@@ -127,13 +127,13 @@ export function CameraControls() {
         </select>
       </div>
 
-      <Separator className="bg-zinc-800" />
+      <Separator className="bg-border" />
 
       {/* Motion Sensitivity */}
       <div className="space-y-2">
         <div className="flex items-center justify-between">
           <Label className="text-sm font-medium">Motion Sensitivity</Label>
-          <span className="text-xs text-zinc-400 font-mono">{sensitivity}</span>
+          <span className="text-xs text-muted-foreground font-mono">{sensitivity}</span>
         </div>
         <Slider
           aria-label="Motion Sensitivity"
@@ -143,22 +143,22 @@ export function CameraControls() {
           value={[sensitivity]}
           onValueChange={handleSensitivityChange}
         />
-        <p className="text-xs text-zinc-500">
+        <p className="text-xs text-muted-foreground">
           Higher = more sensitive to small movements
         </p>
       </div>
 
-      <Separator className="bg-zinc-800" />
+      <Separator className="bg-border" />
 
       {/* Motion Level Indicator */}
       <div className="space-y-2">
         <div className="flex items-center justify-between">
           <Label className="text-sm font-medium">Motion Level</Label>
-          <span className="text-xs text-zinc-400 font-mono">
+          <span className="text-xs text-muted-foreground font-mono">
             {(motionLevel * 100).toFixed(1)}%
           </span>
         </div>
-        <div className="h-2 bg-zinc-800 rounded-full overflow-hidden">
+        <div className="h-2 bg-border rounded-full overflow-hidden">
           <div
             className="h-full bg-teal-500 rounded-full transition-all duration-100"
             style={{ width: `${Math.min(100, motionLevel * 100)}%` }}

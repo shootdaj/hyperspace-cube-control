@@ -45,14 +45,14 @@ export function SetupWizard({ onComplete }: SetupWizardProps) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/95 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/95 backdrop-blur-sm">
       <div className="w-full max-w-md mx-4">
         {/* Step indicator */}
         <div className="flex items-center justify-between mb-8">
-          <span className="text-xs text-zinc-500">Step {step} of 3</span>
+          <span className="text-xs text-muted-foreground">Step {step} of 3</span>
           <button
             onClick={handleSkip}
-            className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors"
+            className="text-xs text-muted-foreground hover:text-foreground transition-colors"
             aria-label="Skip setup wizard"
           >
             Skip
@@ -62,20 +62,20 @@ export function SetupWizard({ onComplete }: SetupWizardProps) {
         {step === 1 && (
           <div>
             <h2 className="text-2xl font-bold mb-2">Connect to HyperCube</h2>
-            <p className="text-zinc-400 text-sm mb-6">
+            <p className="text-muted-foreground text-sm mb-6">
               Enter the IP address of your HyperCube. Find it in your router&apos;s device list
               or on the WLED web interface.
             </p>
             <form onSubmit={handleConnect} className="space-y-4">
               <div>
-                <Label htmlFor="cube-ip" className="text-zinc-300">HyperCube IP Address</Label>
+                <Label htmlFor="cube-ip" className="text-foreground/80">HyperCube IP Address</Label>
                 <Input
                   id="cube-ip"
                   type="text"
                   placeholder="192.168.1.100"
                   value={ip}
                   onChange={(e) => setIp(e.target.value)}
-                  className="mt-1 bg-zinc-900 border-zinc-700 text-zinc-100"
+                  className="mt-1 bg-card border-border text-foreground"
                   aria-describedby={ipError ? 'ip-error' : undefined}
                 />
                 {ipError && (
@@ -98,21 +98,21 @@ export function SetupWizard({ onComplete }: SetupWizardProps) {
         {step === 2 && cubeInfo && (
           <div>
             <h2 className="text-2xl font-bold mb-2">Connected!</h2>
-            <p className="text-zinc-400 text-sm mb-6">
+            <p className="text-muted-foreground text-sm mb-6">
               Your HyperCube is ready to control.
             </p>
-            <div className="bg-zinc-900 rounded-lg p-4 mb-6 space-y-2">
+            <div className="bg-card rounded-lg p-4 mb-6 space-y-2">
               <div className="flex justify-between text-sm">
-                <span className="text-zinc-400">Device</span>
-                <span className="text-zinc-100 font-medium">{cubeInfo.name}</span>
+                <span className="text-muted-foreground">Device</span>
+                <span className="text-foreground font-medium">{cubeInfo.name}</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-zinc-400">LEDs</span>
-                <span className="text-zinc-100 font-medium">{cubeInfo.leds.count} LEDs</span>
+                <span className="text-muted-foreground">LEDs</span>
+                <span className="text-foreground font-medium">{cubeInfo.leds.count} LEDs</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-zinc-400">Firmware</span>
-                <span className="text-zinc-100 font-medium">{cubeInfo.ver}</span>
+                <span className="text-muted-foreground">Firmware</span>
+                <span className="text-foreground font-medium">{cubeInfo.ver}</span>
               </div>
             </div>
             <Button onClick={() => setStep(3)} className="w-full">
@@ -134,8 +134,8 @@ export function SetupWizard({ onComplete }: SetupWizardProps) {
                 <li key={item.title} className="flex items-start gap-3">
                   <span className="text-lg">{item.icon}</span>
                   <div>
-                    <p className="text-sm font-medium text-zinc-100">{item.title}</p>
-                    <p className="text-xs text-zinc-400">{item.desc}</p>
+                    <p className="text-sm font-medium text-foreground">{item.title}</p>
+                    <p className="text-xs text-muted-foreground">{item.desc}</p>
                   </div>
                 </li>
               ))}

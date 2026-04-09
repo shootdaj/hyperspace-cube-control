@@ -1,0 +1,95 @@
+/*
+ * Phosphor — Retro CRT terminal
+ * Green phosphor on dark, CRT font, scan-line overlay, text glow
+ */
+[data-theme='phosphor'] {
+  /* Backgrounds — dark CRT black with green tint */
+  --background: oklch(0.08 0.02 140);
+  --foreground: oklch(0.85 0.25 145);
+  --card: oklch(0.12 0.025 140);
+  --card-foreground: oklch(0.85 0.25 145);
+  --popover: oklch(0.12 0.025 140);
+  --popover-foreground: oklch(0.85 0.25 145);
+
+  /* Primary — bright phosphor green */
+  --primary: oklch(0.85 0.3 145);
+  --primary-foreground: oklch(0.08 0.02 140);
+
+  /* Secondary — dark green tint */
+  --secondary: oklch(0.16 0.04 140);
+  --secondary-foreground: oklch(0.8 0.25 145);
+
+  /* Muted */
+  --muted: oklch(0.14 0.03 140);
+  --muted-foreground: oklch(0.5 0.12 145);
+
+  /* Accent — brighter green */
+  --accent: oklch(0.9 0.3 145);
+  --accent-foreground: oklch(0.08 0.02 140);
+
+  --destructive: oklch(0.65 0.3 145);
+
+  /* Borders — phosphor green */
+  --border: oklch(0.3 0.1 145);
+  --input: oklch(0.18 0.04 140);
+  --ring: oklch(0.85 0.3 145);
+
+  /* Charts — all green variations */
+  --chart-1: oklch(0.85 0.3 145);
+  --chart-2: oklch(0.7 0.22 145);
+  --chart-3: oklch(0.55 0.15 145);
+  --chart-4: oklch(0.4 0.1 145);
+  --chart-5: oklch(0.3 0.06 145);
+
+  /* Sidebar */
+  --sidebar: oklch(0.1 0.025 140);
+  --sidebar-foreground: oklch(0.85 0.25 145);
+  --sidebar-primary: oklch(0.85 0.3 145);
+  --sidebar-primary-foreground: oklch(0.08 0.02 140);
+  --sidebar-accent: oklch(0.18 0.04 140);
+  --sidebar-accent-foreground: oklch(0.8 0.25 145);
+  --sidebar-border: oklch(0.3 0.1 145);
+  --sidebar-ring: oklch(0.85 0.3 145);
+
+  /* Radius — minimal, terminal-like */
+  --radius: 0.125rem;
+
+  /* Typography — CRT monospace */
+  --font-theme: 'VT323', 'Courier New', ui-monospace, monospace;
+  --font-theme-heading: 'VT323', 'Courier New', ui-monospace, monospace;
+
+  /* Theme-specific effects */
+  --theme-glow: 0 0 8px oklch(0.85 0.3 145 / 0.4), 0 0 16px oklch(0.85 0.3 145 / 0.15);
+  --theme-panel-texture: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 1px,
+    oklch(0.08 0.02 140 / 0.5) 1px,
+    oklch(0.08 0.02 140 / 0.5) 2px
+  );
+}
+
+/* Phosphor-specific overrides — CRT text glow, scan lines */
+[data-theme='phosphor'] [data-slot='tabs-trigger'] {
+  text-shadow: 0 0 6px oklch(0.85 0.3 145 / 0.5);
+  letter-spacing: 0.06em;
+}
+
+[data-theme='phosphor'] [data-slot='button'] {
+  text-shadow: 0 0 6px oklch(0.85 0.3 145 / 0.5);
+}
+
+[data-theme='phosphor'] h1,
+[data-theme='phosphor'] h2,
+[data-theme='phosphor'] h3 {
+  text-shadow: 0 0 8px oklch(0.85 0.3 145 / 0.6);
+}
+
+[data-theme='phosphor'] [data-slot='slider-range'] {
+  box-shadow: 0 0 6px oklch(0.85 0.3 145 / 0.5);
+}
+
+[data-theme='phosphor'] [data-slot='slider-thumb'] {
+  box-shadow: 0 0 8px oklch(0.85 0.3 145 / 0.5);
+  border-radius: 0;
+}

@@ -88,7 +88,7 @@ export function PaintControls() {
           className={`w-full min-h-11 text-sm font-medium ${
             isPaintMode
               ? 'bg-green-600 hover:bg-green-700 text-white'
-              : 'border-zinc-700 text-zinc-400 hover:text-zinc-200'
+              : 'border-border text-muted-foreground hover:text-foreground'
           }`}
           onClick={handleTogglePaintMode}
         >
@@ -96,17 +96,17 @@ export function PaintControls() {
         </Button>
       </div>
 
-      <Separator className="bg-zinc-800" />
+      <Separator className="bg-border" />
 
       {/* Color Picker */}
       <div className="space-y-2">
         <Label className="text-sm font-medium">Paint Color</Label>
         <div className="flex items-center gap-3">
           <div
-            className="h-11 w-11 rounded-md border border-zinc-700 shrink-0"
+            className="h-11 w-11 rounded-md border border-border shrink-0"
             style={{ backgroundColor: hexColor }}
           />
-          <span className="font-mono text-xs text-zinc-400 uppercase">{hexColor}</span>
+          <span className="font-mono text-xs text-muted-foreground uppercase">{hexColor}</span>
         </div>
         <HexColorPicker
           color={hexColor}
@@ -115,7 +115,7 @@ export function PaintControls() {
         />
       </div>
 
-      <Separator className="bg-zinc-800" />
+      <Separator className="bg-border" />
 
       {/* Brush Size */}
       <div className="space-y-2">
@@ -128,8 +128,8 @@ export function PaintControls() {
               variant={brushSize === opt.value ? 'default' : 'outline'}
               className={`min-h-11 flex flex-col gap-0.5 text-xs ${
                 brushSize === opt.value
-                  ? 'bg-zinc-700 text-white ring-1 ring-zinc-500'
-                  : 'border-zinc-700 text-zinc-400 hover:text-zinc-200'
+                  ? 'bg-secondary text-foreground ring-1 ring-ring'
+                  : 'border-border text-muted-foreground hover:text-foreground'
               }`}
               onClick={() => handleBrushSize(opt.value)}
             >
@@ -140,7 +140,7 @@ export function PaintControls() {
         </div>
       </div>
 
-      <Separator className="bg-zinc-800" />
+      <Separator className="bg-border" />
 
       {/* Actions */}
       <div className="space-y-2">
@@ -149,7 +149,7 @@ export function PaintControls() {
           <Button
             aria-label="Clear"
             variant="outline"
-            className="min-h-11 border-zinc-700 text-zinc-400 hover:text-zinc-200"
+            className="min-h-11 border-border text-muted-foreground hover:text-foreground"
             onClick={handleClear}
           >
             Clear
@@ -157,7 +157,7 @@ export function PaintControls() {
           <Button
             aria-label="Fill"
             variant="outline"
-            className="min-h-11 border-zinc-700 text-zinc-400 hover:text-zinc-200"
+            className="min-h-11 border-border text-muted-foreground hover:text-foreground"
             onClick={handleFill}
           >
             Fill

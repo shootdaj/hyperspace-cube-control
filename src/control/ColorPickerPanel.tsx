@@ -88,14 +88,14 @@ export function ColorPickerPanel() {
             >
               <PopoverTrigger
                 aria-label={`${SLOT_LABELS[index]} color`}
-                className="min-h-11 min-w-11 h-11 w-11 rounded-md border border-zinc-700
+                className="min-h-11 min-w-11 h-11 w-11 rounded-md border border-border
                   cursor-pointer transition-transform hover:scale-105
                   focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
                 style={{ backgroundColor: hex }}
               />
               <PopoverContent className="w-auto p-3" align="start">
                 <div className="space-y-3">
-                  <p className="text-xs font-medium text-zinc-400">
+                  <p className="text-xs font-medium text-muted-foreground">
                     {SLOT_LABELS[index]}
                   </p>
                   <HexColorPicker

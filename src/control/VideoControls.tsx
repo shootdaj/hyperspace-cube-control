@@ -82,10 +82,10 @@ export function VideoControls() {
                 ? 'bg-green-500'
                 : isLoaded
                   ? 'bg-yellow-500'
-                  : 'bg-zinc-600'
+                  : 'bg-muted'
             }`}
           />
-          <span className="text-xs text-zinc-400">
+          <span className="text-xs text-muted-foreground">
             {isLoaded && isPlaying
               ? `Playing: ${sourceFilename ?? 'video'}`
               : isLoaded
@@ -126,7 +126,7 @@ export function VideoControls() {
             <Button
               aria-label={isPlaying ? 'Pause Video' : 'Play Video'}
               variant="outline"
-              className="flex-1 min-h-11 text-sm font-medium border-zinc-700 text-zinc-300 hover:text-zinc-100"
+              className="flex-1 min-h-11 text-sm font-medium border-border text-secondary-foreground hover:text-foreground"
               onClick={handlePlayPause}
             >
               {isPlaying ? 'Pause' : 'Play'}
@@ -135,7 +135,7 @@ export function VideoControls() {
           <Button
             aria-label="Unload Media"
             variant="outline"
-            className="flex-1 min-h-11 text-sm font-medium border-zinc-700 text-zinc-400 hover:text-red-400 hover:border-red-700"
+            className="flex-1 min-h-11 text-sm font-medium border-border text-muted-foreground hover:text-red-400 hover:border-red-700"
             onClick={handleUnload}
           >
             Unload
@@ -143,7 +143,7 @@ export function VideoControls() {
         </div>
       )}
 
-      <Separator className="bg-zinc-800" />
+      <Separator className="bg-border" />
 
       {/* Mapping Strategy */}
       <div className="space-y-2">
@@ -156,8 +156,8 @@ export function VideoControls() {
               variant={strategy === s.value ? 'default' : 'outline'}
               className={`min-h-11 flex flex-col gap-0.5 text-xs ${
                 strategy === s.value
-                  ? 'bg-zinc-700 text-white ring-1 ring-zinc-500'
-                  : 'border-zinc-700 text-zinc-400 hover:text-zinc-200'
+                  ? 'bg-secondary text-foreground ring-1 ring-ring'
+                  : 'border-border text-muted-foreground hover:text-foreground'
               }`}
               onClick={() => handleStrategyChange(s.value)}
             >

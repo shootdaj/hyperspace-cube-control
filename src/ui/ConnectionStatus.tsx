@@ -18,8 +18,8 @@ const STATUS_CONFIG = {
   },
   disconnected: {
     label: 'Disconnected',
-    dotClass: 'bg-zinc-500',
-    textClass: 'text-zinc-400',
+    dotClass: 'bg-muted-foreground',
+    textClass: 'text-muted-foreground',
   },
 } as const;
 

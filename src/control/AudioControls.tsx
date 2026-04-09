@@ -83,10 +83,10 @@ export function AudioControls() {
                 ? 'bg-green-500'
                 : audioContextState === 'suspended'
                   ? 'bg-yellow-500'
-                  : 'bg-zinc-600'
+                  : 'bg-muted'
             }`}
           />
-          <span className="text-xs text-zinc-400">
+          <span className="text-xs text-muted-foreground">
             {audioContextState === 'running'
               ? 'Audio active'
               : audioContextState === 'suspended'
@@ -118,7 +118,7 @@ export function AudioControls() {
         )}
       </div>
 
-      <Separator className="bg-zinc-800" />
+      <Separator className="bg-border" />
 
       {/* Device Selector */}
       <div className="space-y-2">
@@ -127,7 +127,7 @@ export function AudioControls() {
           aria-label="Audio Source"
           value={selectedDeviceId ?? ''}
           onChange={handleDeviceChange}
-          className="w-full min-h-11 px-3 rounded-md border border-zinc-700 bg-zinc-900 text-zinc-200 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-500"
+          className="w-full min-h-11 px-3 rounded-md border border-border bg-card text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-ring"
         >
           <option value="">Default Microphone</option>
           {devices.map((device) => (
@@ -138,13 +138,13 @@ export function AudioControls() {
         </select>
       </div>
 
-      <Separator className="bg-zinc-800" />
+      <Separator className="bg-border" />
 
       {/* Gain Slider */}
       <div className="space-y-2">
         <div className="flex items-center justify-between">
           <Label className="text-sm font-medium">Gain</Label>
-          <span className="text-xs text-zinc-400 font-mono">{gain.toFixed(1)}x</span>
+          <span className="text-xs text-muted-foreground font-mono">{gain.toFixed(1)}x</span>
         </div>
         <Slider
           aria-label="Gain"
@@ -156,13 +156,13 @@ export function AudioControls() {
         />
       </div>
 
-      <Separator className="bg-zinc-800" />
+      <Separator className="bg-border" />
 
       {/* Sensitivity Slider */}
       <div className="space-y-2">
         <div className="flex items-center justify-between">
           <Label className="text-sm font-medium">Sensitivity</Label>
-          <span className="text-xs text-zinc-400 font-mono">{sensitivity}</span>
+          <span className="text-xs text-muted-foreground font-mono">{sensitivity}</span>
         </div>
         <Slider
           aria-label="Sensitivity"
@@ -174,7 +174,7 @@ export function AudioControls() {
         />
       </div>
 
-      <Separator className="bg-zinc-800" />
+      <Separator className="bg-border" />
 
       {/* Visualization Mode */}
       <div className="space-y-2">
@@ -187,8 +187,8 @@ export function AudioControls() {
               variant={visualizationMode === mode.value ? 'default' : 'outline'}
               className={`min-h-11 flex flex-col gap-0.5 text-xs ${
                 visualizationMode === mode.value
-                  ? 'bg-zinc-700 text-white ring-1 ring-zinc-500'
-                  : 'border-zinc-700 text-zinc-400 hover:text-zinc-200'
+                  ? 'bg-secondary text-foreground ring-1 ring-ring'
+                  : 'border-border text-muted-foreground hover:text-foreground'
               }`}
               onClick={() => handleVisualizationMode(mode.value)}
             >

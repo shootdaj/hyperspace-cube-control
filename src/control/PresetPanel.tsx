@@ -83,7 +83,7 @@ export function PresetPanel() {
 
       <ScrollArea className="flex-1 max-h-[300px]">
         {presets.length === 0 ? (
-          <p className="text-sm text-zinc-500 py-6 text-center">
+          <p className="text-sm text-muted-foreground py-6 text-center">
             No presets saved. Save your current setup!
           </p>
         ) : (

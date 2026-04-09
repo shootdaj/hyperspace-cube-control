@@ -12,6 +12,7 @@ import { startLiveSync } from '@/core/pipeline/WLEDLiveSync';
 import { startStateSync } from '@/core/wled/WLEDStateSync';
 import { effectPaletteStore } from '@/core/store/effectPaletteStore';
 import { presetStore } from '@/core/store/presetStore';
+import { ThemePickerCompact } from '@/themes/ThemePicker';
 
 const WIZARD_STORAGE_KEY = 'wizardCompleted';
 
@@ -56,12 +57,15 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-zinc-950 text-zinc-100">
+    <div className="min-h-screen flex flex-col bg-background text-foreground">
       <MixedContentWarning />
       {!wizardDone && <SetupWizard onComplete={handleWizardComplete} />}
-      <header className="flex items-center justify-between px-4 py-3 border-b border-zinc-800 shrink-0">
+      <header className="flex items-center justify-between px-4 py-3 border-b border-border shrink-0 theme-panel-texture">
         <h1 className="text-lg font-bold tracking-tight">HyperCube Control</h1>
-        <ConnectionStatus />
+        <div className="flex items-center gap-3">
+          <ThemePickerCompact />
+          <ConnectionStatus />
+        </div>
       </header>
       <main className="flex-1 flex flex-col md:flex-row min-h-0">
         {wizardDone ? (
@@ -73,12 +77,12 @@ export default function App() {
               </div>
             </div>
             {/* Control Panel — full width on mobile, 400px sidebar on desktop */}
-            <div className="flex-1 md:flex-none md:w-[400px] md:max-w-[400px] border-t md:border-t-0 md:border-l border-zinc-800 min-h-0">
+            <div className="flex-1 md:flex-none md:w-[400px] md:max-w-[400px] border-t md:border-t-0 md:border-l border-border min-h-0">
               <ControlPanel />
             </div>
           </>
         ) : (
-          <p className="text-zinc-600 text-sm p-4">Complete setup to begin.</p>
+          <p className="text-muted-foreground text-sm p-4">Complete setup to begin.</p>
         )}
       </main>
     </div>
