@@ -19,20 +19,20 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### 3D Visualization
 
-- [ ] **VIZ-01**: App renders interactive 3D cube model with 480 LEDs positioned on 12 edges (20 per edge)
-- [ ] **VIZ-02**: 3D cube mirrors real-time LED state from the physical cube via WebSocket
-- [ ] **VIZ-03**: User can rotate, zoom, and pan the 3D cube with mouse/touch
-- [ ] **VIZ-04**: 3D visualization updates at 30fps+ without frame drops
-- [ ] **VIZ-05**: LED colors in 3D view match physical cube output with visual accuracy
-- [ ] **VIZ-06**: 3D cube renders infinity mirror glow/bloom effect for visual fidelity
+- [x] **VIZ-01**: App renders interactive 3D cube model with 480 LEDs positioned on 12 edges (20 per edge)
+- [x] **VIZ-02**: 3D cube mirrors real-time LED state from the physical cube via WebSocket
+- [x] **VIZ-03**: User can rotate, zoom, and pan the 3D cube with mouse/touch
+- [x] **VIZ-04**: 3D visualization updates at 30fps+ without frame drops
+- [x] **VIZ-05**: LED colors in 3D view match physical cube output with visual accuracy
+- [x] **VIZ-06**: 3D cube renders infinity mirror glow/bloom effect for visual fidelity
 
 ### Plugin Architecture
 
 - [x] **PLUG-01**: InputPlugin interface defined — any input source implements `start()`, `stop()`, `getFrame(): Uint8Array`
 - [x] **PLUG-02**: MappingStrategy interface defined — transforms input data to 480-LED color array
 - [x] **PLUG-03**: OutputPlugin interface defined — sends LED data to cube via any protocol
-- [ ] **PLUG-04**: PipelineEngine orchestrates input → mapping → output at configurable frame rate
-- [ ] **PLUG-05**: Plugins can be swapped at runtime without restarting the pipeline
+- [x] **PLUG-04**: PipelineEngine orchestrates input → mapping → output at configurable frame rate
+- [x] **PLUG-05**: Plugins can be swapped at runtime without restarting the pipeline
 - [x] **PLUG-06**: Each plugin is independently testable with mocked pipeline context
 - [x] **PLUG-07**: Plugin registry allows dynamic registration and enumeration of available plugins
 
@@ -127,8 +127,8 @@ Requirements for initial release. Each maps to roadmap phases.
 
 - [x] **TEST-01**: Virtual cube mock that simulates WLED API responses for all tests
 - [x] **TEST-02**: Unit tests for each plugin interface contract
-- [ ] **TEST-03**: Integration tests for pipeline (input → mapping → output)
-- [ ] **TEST-04**: Visual regression tests for 3D cube rendering
+- [x] **TEST-03**: Integration tests for pipeline (input → mapping → output)
+- [x] **TEST-04**: Visual regression tests for 3D cube rendering
 - [ ] **TEST-05**: All tests pass in CI without physical hardware
 
 ## v2 Requirements
@@ -193,16 +193,16 @@ Deferred to future release. Tracked but not in current roadmap.
 | SETUP-06 | Phase 1 | Complete |
 | TEST-01 | Phase 1 | Complete |
 | TEST-02 | Phase 1 | Complete |
-| VIZ-01 | Phase 2 | Pending |
-| VIZ-02 | Phase 2 | Pending |
-| VIZ-03 | Phase 2 | Pending |
-| VIZ-04 | Phase 2 | Pending |
-| VIZ-05 | Phase 2 | Pending |
-| VIZ-06 | Phase 2 | Pending |
-| PLUG-04 | Phase 2 | Pending |
-| PLUG-05 | Phase 2 | Pending |
-| TEST-03 | Phase 2 | Pending |
-| TEST-04 | Phase 2 | Pending |
+| VIZ-01 | Phase 2 | Complete |
+| VIZ-02 | Phase 2 | Complete |
+| VIZ-03 | Phase 2 | Complete |
+| VIZ-04 | Phase 2 | Complete |
+| VIZ-05 | Phase 2 | Complete |
+| VIZ-06 | Phase 2 | Complete |
+| PLUG-04 | Phase 2 | Complete |
+| PLUG-05 | Phase 2 | Complete |
+| TEST-03 | Phase 2 | Complete |
+| TEST-04 | Phase 2 | Complete |
 | CTRL-01 | Phase 3 | Pending |
 | CTRL-02 | Phase 3 | Pending |
 | CTRL-03 | Phase 3 | Pending |
