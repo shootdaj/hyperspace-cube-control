@@ -119,8 +119,8 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Deployment
 
-- [ ] **DEP-01**: App builds as static site deployable to Vercel
-- [ ] **DEP-02**: App works on localhost for local development (Vite dev server)
+- [x] **DEP-01**: App builds as static site deployable to Vercel
+- [x] **DEP-02**: App works on localhost for local development (Vite dev server)
 - [ ] **DEP-03**: Environment-appropriate warnings for HTTPS/HTTP mixed content
 
 ### Testing & Quality
@@ -182,8 +182,8 @@ Deferred to future release. Tracked but not in current roadmap.
 | PLUG-03 | Phase 1 | Pending |
 | PLUG-06 | Phase 1 | Pending |
 | PLUG-07 | Phase 1 | Pending |
-| DEP-01 | Phase 1 | Pending |
-| DEP-02 | Phase 1 | Pending |
+| DEP-01 | Phase 1 | Complete |
+| DEP-02 | Phase 1 | Complete |
 | DEP-03 | Phase 1 | Pending |
 | SETUP-01 | Phase 1 | Pending |
 | SETUP-02 | Phase 1 | Pending |
