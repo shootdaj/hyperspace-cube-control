@@ -1,11 +1,44 @@
-import { useRef, useMemo, useEffect } from 'react';
-import { useFrame } from '@react-three/fiber';
+import { useRef, useMemo, useEffect, useCallback } from 'react';
+import { useFrame, type ThreeEvent } from '@react-three/fiber';
 import * as THREE from 'three';
 import { ledStateProxy } from '@/core/store/ledStateProxy';
 import { computeLEDPositions } from './cubeGeometry';
+import { paintPlugin } from '@/plugins/inputs/paintSingleton';
+import { paintStore } from '@/stores/paintStore';
+import { getEdgeIndex, getEdgeFaces } from '@/plugins/inputs/cubeTopology';
 
 // Pre-allocate ONE Color instance outside component — NEVER allocate inside useFrame
 const _color = new THREE.Color();
+
+/**
+ * Apply paint to the ManualPaintPlugin buffer and sync to ledStateProxy.
+ * Called from pointer event handlers — must be fast, no React state.
+ */
+function applyPaint(ledIndex: number): void {
+  const { color, brushSize } = paintStore.getState();
+  const [r, g, b] = color;
+
+  switch (brushSize) {
+    case 'single':
+      paintPlugin.setPixel(ledIndex, r, g, b);
+      break;
+    case 'edge':
+      paintPlugin.setEdge(getEdgeIndex(ledIndex), r, g, b);
+      break;
+    case 'face': {
+      const edgeIdx = getEdgeIndex(ledIndex);
+      const faces = getEdgeFaces(edgeIdx);
+      // Use first face (deterministic for now)
+      paintPlugin.setFaceEdges(faces[0], r, g, b);
+      break;
+    }
+  }
+
+  // Optimistic local update: copy entire paint buffer to ledStateProxy
+  // for instant visual feedback (next useFrame will render it)
+  ledStateProxy.colors.set(paintPlugin.getBuffer());
+  ledStateProxy.lastUpdated = performance.now();
+}
 
 /**
  * CubeMesh — renders all 480 HyperCube LEDs as InstancedMesh spheres.
@@ -18,9 +51,15 @@ const _color = new THREE.Color();
  *   - emissive is not per-instance on MeshStandardMaterial
  *   - MeshBasicMaterial + toneMapped:false + colors>1.0 -> Bloom detects HDR values
  *   - Simpler (no lighting calculations)
+ *
+ * Paint interaction: When paintStore.isPaintMode is true, pointer events on the
+ * InstancedMesh trigger paint operations via ManualPaintPlugin. pointerDown starts
+ * painting, pointerMove continues it (drag paint), pointerUp stops.
  */
 export function CubeMesh() {
   const meshRef = useRef<THREE.InstancedMesh>(null);
+  const paintingRef = useRef(false);
+  const lastPaintedRef = useRef(-1);
 
   const positions = useMemo(() => computeLEDPositions(), []);
 
@@ -79,10 +118,37 @@ export function CubeMesh() {
     mesh.instanceColor.needsUpdate = true;
   });
 
+  const handlePointerDown = useCallback((e: ThreeEvent<PointerEvent>) => {
+    if (!paintStore.getState().isPaintMode) return;
+    if (e.instanceId === undefined) return;
+    e.stopPropagation();
+    paintingRef.current = true;
+    lastPaintedRef.current = e.instanceId;
+    applyPaint(e.instanceId);
+  }, []);
+
+  const handlePointerMove = useCallback((e: ThreeEvent<PointerEvent>) => {
+    if (!paintingRef.current) return;
+    if (e.instanceId === undefined) return;
+    if (e.instanceId === lastPaintedRef.current) return;
+    e.stopPropagation();
+    lastPaintedRef.current = e.instanceId;
+    applyPaint(e.instanceId);
+  }, []);
+
+  const handlePointerUp = useCallback(() => {
+    paintingRef.current = false;
+    lastPaintedRef.current = -1;
+  }, []);
+
   return (
     <instancedMesh
       ref={meshRef}
       args={[geometry, material, 480]}
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerUp}
+      onPointerLeave={handlePointerUp}
     />
   );
 }
