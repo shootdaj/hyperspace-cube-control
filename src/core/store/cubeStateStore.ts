@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { WLEDState, CubeSegment } from './types';
+import type { WLEDState, WLEDColor, WLEDIncomingSegment } from './types';
 
 interface CubeStateStore {
   on: boolean;
@@ -8,7 +8,8 @@ interface CubeStateStore {
   paletteIndex: number;
   speed: number;
   intensity: number;
-  segments: CubeSegment[];
+  colors: WLEDColor[];
+  segments: WLEDIncomingSegment[];
   firmwareVersion: string;
   ledCount: number;
   // Actions
@@ -18,6 +19,7 @@ interface CubeStateStore {
   setPaletteIndex: (index: number) => void;
   setSpeed: (speed: number) => void;
   setIntensity: (intensity: number) => void;
+  setColors: (colors: WLEDColor[]) => void;
   /** Bulk update from /json/state WebSocket message or REST response */
   syncFromWLED: (state: WLEDState) => void;
   setFirmwareVersion: (version: string) => void;
@@ -33,6 +35,7 @@ export const cubeStateStore = create<CubeStateStore>()((set) => ({
   paletteIndex: 0,
   speed: 128,
   intensity: 128,
+  colors: [[255, 160, 0], [0, 0, 0], [0, 0, 0]] as WLEDColor[],
   segments: [],
   firmwareVersion: '',
   ledCount: 480,
@@ -42,18 +45,26 @@ export const cubeStateStore = create<CubeStateStore>()((set) => ({
   setPaletteIndex: (paletteIndex) => set({ paletteIndex }),
   setSpeed: (speed) => set({ speed }),
   setIntensity: (intensity) => set({ intensity }),
-  syncFromWLED: (state) => set({
-    on: state.on,
-    brightness: state.bri,
-    segments: state.seg,
-    // Sync from first segment if available
-    ...(state.seg[0] ? {
-      effectIndex: state.seg[0].fx,
-      paletteIndex: state.seg[0].pal,
-      speed: state.seg[0].sx,
-      intensity: state.seg[0].ix,
-    } : {}),
-  }),
+  setColors: (colors) => set({ colors }),
+  syncFromWLED: (state) => {
+    const seg0 = state.seg[0];
+    const update: Partial<CubeStateStore> = {
+      on: state.on,
+      brightness: state.bri,
+      segments: state.seg,
+    };
+    if (seg0) {
+      update.effectIndex = seg0.fx;
+      update.paletteIndex = seg0.pal;
+      update.speed = seg0.sx;
+      update.intensity = seg0.ix;
+      // Extract RGB colors from seg[0].col, stripping optional alpha channel
+      if (seg0.col && seg0.col.length > 0) {
+        update.colors = seg0.col.map((c) => [c[0], c[1], c[2]] as WLEDColor);
+      }
+    }
+    set(update);
+  },
   setFirmwareVersion: (firmwareVersion) => set({ firmwareVersion }),
   setLedCount: (ledCount) => set({ ledCount }),
 }));

@@ -34,7 +34,8 @@ describe('Cube Visualization Scenarios', () => {
 
     render(<App />);
 
-    // Connect to virtual cube
+    // Connect to virtual cube — set IP in store so App.tsx effects run
+    connectionStore.getState().setIp('192.168.1.100');
     const ws = WLEDWebSocketService.getInstance();
     ws.connect('192.168.1.100');
 
