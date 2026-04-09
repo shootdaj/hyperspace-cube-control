@@ -101,12 +101,12 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Setup Wizard
 
-- [ ] **SETUP-01**: First-launch wizard guides user through connecting to their HyperCube
-- [ ] **SETUP-02**: Wizard prompts for cube IP address with validation (ping/API check)
-- [ ] **SETUP-03**: Wizard confirms successful connection with live cube state display
-- [ ] **SETUP-04**: Wizard offers brief tour of main features
-- [ ] **SETUP-05**: User can skip wizard and go straight to settings
-- [ ] **SETUP-06**: Wizard state persists (doesn't show again after completion)
+- [x] **SETUP-01**: First-launch wizard guides user through connecting to their HyperCube
+- [x] **SETUP-02**: Wizard prompts for cube IP address with validation (ping/API check)
+- [x] **SETUP-03**: Wizard confirms successful connection with live cube state display
+- [x] **SETUP-04**: Wizard offers brief tour of main features
+- [x] **SETUP-05**: User can skip wizard and go straight to settings
+- [x] **SETUP-06**: Wizard state persists (doesn't show again after completion)
 
 ### UI Design & Responsiveness
 
@@ -185,12 +185,12 @@ Deferred to future release. Tracked but not in current roadmap.
 | DEP-01 | Phase 1 | Complete |
 | DEP-02 | Phase 1 | Complete |
 | DEP-03 | Phase 1 | Complete |
-| SETUP-01 | Phase 1 | Pending |
-| SETUP-02 | Phase 1 | Pending |
-| SETUP-03 | Phase 1 | Pending |
-| SETUP-04 | Phase 1 | Pending |
-| SETUP-05 | Phase 1 | Pending |
-| SETUP-06 | Phase 1 | Pending |
+| SETUP-01 | Phase 1 | Complete |
+| SETUP-02 | Phase 1 | Complete |
+| SETUP-03 | Phase 1 | Complete |
+| SETUP-04 | Phase 1 | Complete |
+| SETUP-05 | Phase 1 | Complete |
+| SETUP-06 | Phase 1 | Complete |
 | TEST-01 | Phase 1 | Complete |
 | TEST-02 | Phase 1 | Complete |
 | VIZ-01 | Phase 2 | Pending |
