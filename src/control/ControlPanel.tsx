@@ -9,6 +9,8 @@ import { PresetPanel } from './PresetPanel';
 import { PaintControls } from './PaintControls';
 import { AudioControls } from './AudioControls';
 import { MIDIControls } from './MIDIControls';
+import { VideoControls } from './VideoControls';
+import { CameraControls } from './CameraControls';
 
 /**
  * ControlPanel — top-level container for all WLED control components.
@@ -47,6 +49,12 @@ export function ControlPanel() {
           <TabsTrigger value="midi" className="min-h-11 px-3 text-xs data-[state=active]:bg-zinc-800 rounded-md">
             MIDI
           </TabsTrigger>
+          <TabsTrigger value="video" className="min-h-11 px-3 text-xs data-[state=active]:bg-zinc-800 rounded-md">
+            Video
+          </TabsTrigger>
+          <TabsTrigger value="camera" className="min-h-11 px-3 text-xs data-[state=active]:bg-zinc-800 rounded-md">
+            Camera
+          </TabsTrigger>
         </TabsList>
 
         <div className="flex-1 overflow-y-auto min-h-0">
@@ -80,6 +88,14 @@ export function ControlPanel() {
 
           <TabsContent value="midi" className="p-4 mt-0">
             <MIDIControls />
+          </TabsContent>
+
+          <TabsContent value="video" className="p-4 mt-0">
+            <VideoControls />
+          </TabsContent>
+
+          <TabsContent value="camera" className="p-4 mt-0">
+            <CameraControls />
           </TabsContent>
         </div>
       </Tabs>
