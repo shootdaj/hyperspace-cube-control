@@ -1,4 +1,4 @@
-import { themeStore, THEMES, type ThemeId } from '@/core/store/themeStore';
+import { themeStore, THEMES } from '@/core/store/themeStore';
 import { cn } from '@/lib/utils';
 
 /**

@@ -57,12 +57,12 @@ export function AudioControls() {
     }
   }, []);
 
-  const handleGainChange = useCallback((value: number | number[]) => {
+  const handleGainChange = useCallback((value: number | readonly number[]) => {
     const v = Array.isArray(value) ? value[0] : value;
     audioPlugin.setGain(v);
   }, []);
 
-  const handleSensitivityChange = useCallback((value: number | number[]) => {
+  const handleSensitivityChange = useCallback((value: number | readonly number[]) => {
     const v = Array.isArray(value) ? value[0] : value;
     audioStore.getState().setSensitivity(v);
   }, []);

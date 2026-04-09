@@ -2,7 +2,7 @@ import type { MappingStrategy, FrameData } from '@/core/pipeline/types';
 import { audioStore } from '@/stores/audioStore';
 
 const LED_COUNT = 480;
-const EDGES = 12;
+// 12 edges on the cube, one spectral band per edge
 const LEDS_PER_EDGE = 40;
 const SAMPLE_RATE = 44100;
 const BIN_COUNT = 1024; // fftSize=2048 → 1024 bins
