@@ -1,0 +1,40 @@
+{
+  "initialized_at": "2026-04-09T05:23:00.000Z",
+  "project_name": "HyperCube Control",
+  "mode": "greenfield",
+  "profile": "quality",
+  "notion": {
+    "parent_page_id": "a75b89b4-d9d2-475d-88c7-9a60e8fda000",
+    "doc_pages": {
+      "project_home": "33dbe2a0-2022-819e-8176-ce0260591ebe"
+    },
+    "last_updated": "2026-04-09T05:23:00.000Z"
+  },
+  "testing": {
+    "stack": "node",
+    "language_version": "22",
+    "test_framework": "vitest",
+    "unit_command": "npx vitest run --dir src",
+    "integration_command": "npx vitest run --dir test/integration",
+    "scenario_command": "npx vitest run --dir test/scenarios",
+    "docker_compose_file": null
+  },
+  "deployment": {
+    "type": "web-app",
+    "provider": "vercel",
+    "url": null
+  },
+  "ci": {
+    "provider": "github-actions",
+    "workflow_file": ".github/workflows/ci.yml"
+  },
+  "phases_completed": [],
+  "milestone_history": [],
+  "last_commands": {
+    "init": "2026-04-09T05:23:00.000Z",
+    "phase": null,
+    "run": null,
+    "finish": null,
+    "status": null
+  }
+}
