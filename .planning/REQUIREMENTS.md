@@ -170,13 +170,94 @@ Deferred to future release. Tracked but not in current roadmap.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| (To be populated during roadmap creation) | | |
+| CONN-01 | Phase 1 | Pending |
+| CONN-02 | Phase 1 | Pending |
+| CONN-03 | Phase 1 | Pending |
+| CONN-04 | Phase 1 | Pending |
+| CONN-05 | Phase 1 | Pending |
+| CONN-06 | Phase 1 | Pending |
+| CONN-07 | Phase 1 | Pending |
+| PLUG-01 | Phase 1 | Pending |
+| PLUG-02 | Phase 1 | Pending |
+| PLUG-03 | Phase 1 | Pending |
+| PLUG-06 | Phase 1 | Pending |
+| PLUG-07 | Phase 1 | Pending |
+| DEP-01 | Phase 1 | Pending |
+| DEP-02 | Phase 1 | Pending |
+| DEP-03 | Phase 1 | Pending |
+| SETUP-01 | Phase 1 | Pending |
+| SETUP-02 | Phase 1 | Pending |
+| SETUP-03 | Phase 1 | Pending |
+| SETUP-04 | Phase 1 | Pending |
+| SETUP-05 | Phase 1 | Pending |
+| SETUP-06 | Phase 1 | Pending |
+| TEST-01 | Phase 1 | Pending |
+| TEST-02 | Phase 1 | Pending |
+| VIZ-01 | Phase 2 | Pending |
+| VIZ-02 | Phase 2 | Pending |
+| VIZ-03 | Phase 2 | Pending |
+| VIZ-04 | Phase 2 | Pending |
+| VIZ-05 | Phase 2 | Pending |
+| VIZ-06 | Phase 2 | Pending |
+| PLUG-04 | Phase 2 | Pending |
+| PLUG-05 | Phase 2 | Pending |
+| TEST-03 | Phase 2 | Pending |
+| TEST-04 | Phase 2 | Pending |
+| CTRL-01 | Phase 3 | Pending |
+| CTRL-02 | Phase 3 | Pending |
+| CTRL-03 | Phase 3 | Pending |
+| CTRL-04 | Phase 3 | Pending |
+| CTRL-05 | Phase 3 | Pending |
+| CTRL-06 | Phase 3 | Pending |
+| CTRL-07 | Phase 3 | Pending |
+| PRES-01 | Phase 3 | Pending |
+| PRES-02 | Phase 3 | Pending |
+| PRES-03 | Phase 3 | Pending |
+| PRES-04 | Phase 3 | Pending |
+| PRES-05 | Phase 3 | Pending |
+| UI-03 | Phase 3 | Pending |
+| UI-04 | Phase 3 | Pending |
+| UI-06 | Phase 3 | Pending |
+| PAINT-01 | Phase 4 | Pending |
+| PAINT-02 | Phase 4 | Pending |
+| PAINT-03 | Phase 4 | Pending |
+| PAINT-04 | Phase 4 | Pending |
+| PAINT-05 | Phase 4 | Pending |
+| PAINT-06 | Phase 4 | Pending |
+| AUD-01 | Phase 5 | Pending |
+| AUD-02 | Phase 5 | Pending |
+| AUD-03 | Phase 5 | Pending |
+| AUD-04 | Phase 5 | Pending |
+| AUD-05 | Phase 5 | Pending |
+| AUD-06 | Phase 5 | Pending |
+| MIDI-01 | Phase 6 | Pending |
+| MIDI-02 | Phase 6 | Pending |
+| MIDI-03 | Phase 6 | Pending |
+| MIDI-04 | Phase 6 | Pending |
+| MIDI-05 | Phase 6 | Pending |
+| MIDI-06 | Phase 6 | Pending |
+| VID-01 | Phase 7 | Pending |
+| VID-02 | Phase 7 | Pending |
+| VID-03 | Phase 7 | Pending |
+| VID-04 | Phase 7 | Pending |
+| VID-05 | Phase 7 | Pending |
+| VID-06 | Phase 7 | Pending |
+| CAM-01 | Phase 7 | Pending |
+| CAM-02 | Phase 7 | Pending |
+| CAM-03 | Phase 7 | Pending |
+| CAM-04 | Phase 7 | Pending |
+| CAM-05 | Phase 7 | Pending |
+| CAM-06 | Phase 7 | Pending |
+| UI-01 | Phase 8 | Pending |
+| UI-02 | Phase 8 | Pending |
+| UI-05 | Phase 8 | Pending |
+| TEST-05 | Phase 8 | Pending |
 
 **Coverage:**
-- v1 requirements: 62 total
-- Mapped to phases: 0 (pending roadmap)
-- Unmapped: 62
+- v1 requirements: 82 total
+- Mapped to phases: 82
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-04-09*
-*Last updated: 2026-04-09 after initial definition*
+*Last updated: 2026-04-09 after roadmap creation — all 82 requirements mapped to 8 phases*
