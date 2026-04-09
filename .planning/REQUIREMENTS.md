@@ -10,11 +10,11 @@ Requirements for initial release. Each maps to roadmap phases.
 ### Connection & Communication
 
 - [x] **CONN-01**: App discovers or accepts manual entry of HyperCube IP address
-- [ ] **CONN-02**: App connects to WLED via WebSocket singleton (shared across all components)
+- [x] **CONN-02**: App connects to WLED via WebSocket singleton (shared across all components)
 - [x] **CONN-03**: App displays real-time connection health indicator (connected/reconnecting/disconnected)
-- [ ] **CONN-04**: App auto-reconnects on WebSocket disconnect with exponential backoff
-- [ ] **CONN-05**: App serializes WLED API requests to avoid overloading ESP32 (request queue)
-- [ ] **CONN-06**: App detects HTTP/HTTPS mismatch and warns user with clear instructions
+- [x] **CONN-04**: App auto-reconnects on WebSocket disconnect with exponential backoff
+- [x] **CONN-05**: App serializes WLED API requests to avoid overloading ESP32 (request queue)
+- [x] **CONN-06**: App detects HTTP/HTTPS mismatch and warns user with clear instructions
 - [x] **CONN-07**: App reads cube state (on/off, brightness, current effect, palette, colors) via JSON API
 
 ### 3D Visualization
@@ -121,11 +121,11 @@ Requirements for initial release. Each maps to roadmap phases.
 
 - [x] **DEP-01**: App builds as static site deployable to Vercel
 - [x] **DEP-02**: App works on localhost for local development (Vite dev server)
-- [ ] **DEP-03**: Environment-appropriate warnings for HTTPS/HTTP mixed content
+- [x] **DEP-03**: Environment-appropriate warnings for HTTPS/HTTP mixed content
 
 ### Testing & Quality
 
-- [ ] **TEST-01**: Virtual cube mock that simulates WLED API responses for all tests
+- [x] **TEST-01**: Virtual cube mock that simulates WLED API responses for all tests
 - [x] **TEST-02**: Unit tests for each plugin interface contract
 - [ ] **TEST-03**: Integration tests for pipeline (input → mapping → output)
 - [ ] **TEST-04**: Visual regression tests for 3D cube rendering
@@ -171,11 +171,11 @@ Deferred to future release. Tracked but not in current roadmap.
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | CONN-01 | Phase 1 | Complete |
-| CONN-02 | Phase 1 | Pending |
+| CONN-02 | Phase 1 | Complete |
 | CONN-03 | Phase 1 | Complete |
-| CONN-04 | Phase 1 | Pending |
-| CONN-05 | Phase 1 | Pending |
-| CONN-06 | Phase 1 | Pending |
+| CONN-04 | Phase 1 | Complete |
+| CONN-05 | Phase 1 | Complete |
+| CONN-06 | Phase 1 | Complete |
 | CONN-07 | Phase 1 | Complete |
 | PLUG-01 | Phase 1 | Complete |
 | PLUG-02 | Phase 1 | Complete |
@@ -184,14 +184,14 @@ Deferred to future release. Tracked but not in current roadmap.
 | PLUG-07 | Phase 1 | Complete |
 | DEP-01 | Phase 1 | Complete |
 | DEP-02 | Phase 1 | Complete |
-| DEP-03 | Phase 1 | Pending |
+| DEP-03 | Phase 1 | Complete |
 | SETUP-01 | Phase 1 | Pending |
 | SETUP-02 | Phase 1 | Pending |
 | SETUP-03 | Phase 1 | Pending |
 | SETUP-04 | Phase 1 | Pending |
 | SETUP-05 | Phase 1 | Pending |
 | SETUP-06 | Phase 1 | Pending |
-| TEST-01 | Phase 1 | Pending |
+| TEST-01 | Phase 1 | Complete |
 | TEST-02 | Phase 1 | Complete |
 | VIZ-01 | Phase 2 | Pending |
 | VIZ-02 | Phase 2 | Pending |
