@@ -148,7 +148,7 @@ export function CubeMesh() {
 
   // useMemo — NEVER create geometry/material outside useMemo in R3F components.
   // Without memoization, new objects are created on every React re-render.
-  const geometry = useMemo(() => new THREE.SphereGeometry(0.012, 6, 6), []);
+  const geometry = useMemo(() => new THREE.SphereGeometry(0.025, 8, 8), []);
   const material = useMemo(
     () => new THREE.MeshBasicMaterial({ vertexColors: true, toneMapped: false }),
     [],
@@ -196,8 +196,8 @@ export function CubeMesh() {
         // Dim glow for off LEDs so cube shape stays visible
         _color.setRGB(0.06, 0.06, 0.08);
       } else {
-        // Scale to 0-1.5 range so bright LEDs produce HDR values > 1.0 for bloom
-        const scale = 1.5 / 255;
+        // Scale to 0-3.0 range so bright LEDs produce strong HDR values for bloom
+        const scale = 3.0 / 255;
         _color.setRGB(r * scale, g * scale, b * scale);
       }
       mesh.setColorAt(i, _color);
