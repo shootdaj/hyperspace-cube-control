@@ -12,6 +12,7 @@ vi.mock('@/core/wled/WLEDWebSocketService', () => ({
   WLEDWebSocketService: {
     getInstance: vi.fn(() => ({
       send: mockSend,
+      isWsAvailable: vi.fn(() => true),
     })),
   },
 }));

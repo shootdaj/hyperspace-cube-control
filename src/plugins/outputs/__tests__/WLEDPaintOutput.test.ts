@@ -9,6 +9,7 @@ vi.mock('@/core/wled/WLEDWebSocketService', () => ({
   WLEDWebSocketService: {
     getInstance: vi.fn(() => ({
       send: mockSend,
+      isWsAvailable: vi.fn(() => true), // WS available -> uses ws.send() path
     })),
   },
 }));
@@ -51,10 +52,9 @@ describe('WLEDPaintOutput', () => {
 
       const payload = send.mock.calls[0][0];
       expect(payload.seg).toBeDefined();
-      expect(payload.seg[0].i[0]).toBe(0); // start index
-      expect(payload.seg[0].i[1]).toBe(255); // R
-      expect(payload.seg[0].i[2]).toBe(128); // G
-      expect(payload.seg[0].i[3]).toBe(64);  // B
+      expect(payload.seg[0].i[0]).toBe(0); // start index (integer)
+      // Colors are hex strings, not flat integers
+      expect(payload.seg[0].i[1]).toBe('ff8040'); // RGB(255, 128, 64) as hex
     });
 
     it('TestWLEDPaintOutput_ContiguousRange_SingleSend', () => {
@@ -72,8 +72,12 @@ describe('WLEDPaintOutput', () => {
 
       const payload = send.mock.calls[0][0];
       expect(payload.seg[0].i[0]).toBe(10); // start index
-      // 5 LEDs * 3 channels + 1 start index = 16 entries
-      expect(payload.seg[0].i.length).toBe(1 + 5 * 3);
+      // 5 LEDs as hex strings + 1 start index = 6 entries
+      expect(payload.seg[0].i.length).toBe(1 + 5);
+      // Verify all colors are hex strings
+      for (let j = 1; j <= 5; j++) {
+        expect(payload.seg[0].i[j]).toBe('64c832'); // RGB(100, 200, 50) as hex
+      }
     });
 
     it('TestWLEDPaintOutput_NonContiguousChanges_MultipleSends', () => {
@@ -109,7 +113,9 @@ describe('WLEDPaintOutput', () => {
       expect(send).toHaveBeenCalledTimes(1);
       // Should only send LED 1, not LED 0
       const payload = send.mock.calls[0][0];
-      expect(payload.seg[0].i[0]).toBe(1); // LED 1
+      expect(payload.seg[0].i[0]).toBe(1); // LED 1 (index)
+      // buffer2[3]=255 -> LED 1 R=255, G=0, B=0
+      expect(payload.seg[0].i[1]).toBe('ff0000'); // RGB(255, 0, 0) as hex
     });
   });
 
@@ -139,7 +145,7 @@ describe('WLEDPaintOutput', () => {
       expect(send).toHaveBeenCalledTimes(2); // Now the last pending was flushed
       // Should have sent buffer3 (latest), not buffer2
       const lastPayload = send.mock.calls[1][0];
-      expect(lastPayload.seg[0].i[1]).toBe(255); // buffer3's value
+      expect(lastPayload.seg[0].i[1]).toBe('ff0000'); // buffer3's value: RGB(255,0,0) as hex
     });
   });
 
@@ -186,8 +192,10 @@ describe('WLEDPaintOutput', () => {
 
       const chunk = send.mock.calls[0][0];
       expect(chunk.seg[0].i[0]).toBe(0); // start index
-      // 224 LEDs * 3 channels + 1 start index
-      expect(chunk.seg[0].i.length).toBe(1 + DEFAULT_LED_COUNT * 3);
+      // 224 LEDs as hex strings + 1 start index
+      expect(chunk.seg[0].i.length).toBe(1 + DEFAULT_LED_COUNT);
+      // First LED is RGB(42, 0, 0) as hex
+      expect(chunk.seg[0].i[1]).toBe('2a0000');
     });
 
     it('TestWLEDPaintOutput_SendAll_UpdatesLastSent', () => {

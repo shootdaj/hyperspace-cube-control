@@ -14,6 +14,7 @@ vi.mock('@/core/wled/WLEDWebSocketService', () => ({
   WLEDWebSocketService: {
     getInstance: vi.fn(() => ({
       send: mockSend,
+      isWsAvailable: vi.fn(() => true),
     })),
   },
 }));
@@ -119,10 +120,9 @@ describe('Paint Pipeline Integration', () => {
 
     expect(mockSend).toHaveBeenCalledTimes(1);
     const payload = mockSend.mock.calls[0][0];
-    expect(payload.seg[0].i[0]).toBe(42); // LED 42
-    expect(payload.seg[0].i[1]).toBe(255); // R
-    expect(payload.seg[0].i[2]).toBe(0);   // G
-    expect(payload.seg[0].i[3]).toBe(255); // B
+    expect(payload.seg[0].i[0]).toBe(42); // LED 42 (index)
+    // Color is hex string, not flat integers
+    expect(payload.seg[0].i[1]).toBe('ff00ff'); // RGB(255, 0, 255) as hex
 
     paintOutput.destroy();
   });

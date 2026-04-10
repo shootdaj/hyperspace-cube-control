@@ -3,6 +3,22 @@ import { connectionStore } from '@/core/store/connectionStore';
 import { DEFAULT_LED_COUNT, DEFAULT_FRAME_SIZE } from '@/core/constants';
 
 /**
+ * Convert an RGB byte triplet to a 6-character hex string ("RRGGBB").
+ *
+ * WLED's seg.i JSON parser uses type-checking to distinguish LED indices
+ * from colors: plain integers are indices, strings/arrays are colors.
+ * Encoding colors as hex strings ensures WLED interprets them correctly
+ * and is the most compact format per the WLED docs.
+ */
+function rgbToHex(r: number, g: number, b: number): string {
+  return (
+    (r < 16 ? '0' : '') + r.toString(16) +
+    (g < 16 ? '0' : '') + g.toString(16) +
+    (b < 16 ? '0' : '') + b.toString(16)
+  );
+}
+
+/**
  * Groups sorted indices into contiguous ranges.
  * [0,1,2,5,6,10] → [{start:0,end:2},{start:5,end:6},{start:10,end:10}]
  */
@@ -78,15 +94,19 @@ export class WLEDPaintOutput {
 
     if (changed.length === 0) return;
 
-    // Build contiguous ranges and send each
+    // Build contiguous ranges and send each.
+    // WLED seg.i format: [startIndex, "RRGGBB", "RRGGBB", ...]
+    // Colors MUST be hex strings (or [R,G,B] arrays), NOT flat integers.
+    // WLED's parser (json.cpp) uses JSON type-checking: integers = LED indices,
+    // strings/arrays = colors. Flat integers would all be misread as indices.
     const ranges = buildRanges(changed);
     const ws = WLEDWebSocketService.getInstance();
     const useRest = ws.isWsAvailable() !== true;
 
     for (const range of ranges) {
-      const payload: number[] = [range.start];
+      const payload: (number | string)[] = [range.start];
       for (let i = range.start; i <= range.end; i++) {
-        payload.push(buf[i * 3], buf[i * 3 + 1], buf[i * 3 + 2]);
+        payload.push(rgbToHex(buf[i * 3], buf[i * 3 + 1], buf[i * 3 + 2]));
       }
       if (useRest) {
         // REST fallback for firmware without WebSocket (hs-1.7) and native apps
@@ -116,10 +136,11 @@ export class WLEDPaintOutput {
     const ws = WLEDWebSocketService.getInstance();
     const useRest = ws.isWsAvailable() !== true;
 
-    // 224 LEDs fits in a single chunk
-    const chunk: number[] = [0]; // start index
+    // 224 LEDs fits in a single chunk.
+    // Colors encoded as hex strings for WLED seg.i format.
+    const chunk: (number | string)[] = [0]; // start index
     for (let i = 0; i < DEFAULT_LED_COUNT; i++) {
-      chunk.push(buffer[i * 3], buffer[i * 3 + 1], buffer[i * 3 + 2]);
+      chunk.push(rgbToHex(buffer[i * 3], buffer[i * 3 + 1], buffer[i * 3 + 2]));
     }
     const payload = { seg: [{ id: 0, i: chunk }] };
     if (useRest) {
