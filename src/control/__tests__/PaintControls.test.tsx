@@ -68,11 +68,11 @@ describe('PaintControls', () => {
     expect(paintStore.getState().brushSize).toBe('single');
   });
 
-  it('TestPaintControls_ColorPicker_Renders', () => {
+  it('TestPaintControls_XYColorGrid_Renders', () => {
     render(<PaintControls />);
-    // react-colorful renders a div with class "react-colorful"
-    const picker = document.querySelector('.react-colorful');
-    expect(picker).toBeInTheDocument();
+    // XYColorGrid renders a canvas element for the hue x brightness picker
+    const canvas = document.querySelector('canvas');
+    expect(canvas).toBeInTheDocument();
   });
 
   it('TestPaintControls_Clear_SetsColorToBlack', () => {

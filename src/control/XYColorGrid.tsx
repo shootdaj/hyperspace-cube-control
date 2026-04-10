@@ -1,12 +1,20 @@
 import { useRef, useEffect, useCallback } from 'react';
 import { hslToRgb } from '@/plugins/mappings/AudioSpectrumMappingStrategy';
+import { connectionStore } from '@/core/store/connectionStore';
+import { ledStateProxy } from '@/core/store/ledStateProxy';
+import { DEFAULT_LED_COUNT } from '@/core/constants';
 
 const CANVAS_WIDTH = 280;
 const CANVAS_HEIGHT = 120;
 
+/** Minimum interval between REST sends (ms) -- ~30fps */
+const SEND_INTERVAL_MS = 33;
+
 interface XYColorGridProps {
   onColorSelect: (rgb: [number, number, number]) => void;
   selectedColor?: [number, number, number];
+  /** When true, dragging sends colors to the cube in real time via REST */
+  liveControl?: boolean;
 }
 
 /**
@@ -44,10 +52,11 @@ function rgbToHsl(r: number, g: number, b: number): [number, number, number] {
  * Uses ImageData for fast pixel-level gradient rendering.
  * Crosshair indicator tracks the currently selected color.
  */
-export function XYColorGrid({ onColorSelect, selectedColor }: XYColorGridProps) {
+export function XYColorGrid({ onColorSelect, selectedColor, liveControl = false }: XYColorGridProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const gradientDataRef = useRef<ImageData | null>(null);
   const pressedRef = useRef(false);
+  const lastSendTimeRef = useRef(0);
 
   // Draw the gradient once and cache it
   useEffect(() => {
@@ -123,6 +132,38 @@ export function XYColorGrid({ onColorSelect, selectedColor }: XYColorGridProps) 
     }
   }, [selectedColor]);
 
+  /** Fill ledStateProxy and send REST POST to WLED, throttled to ~30fps */
+  const sendToCube = useCallback(
+    (rgb: [number, number, number]) => {
+      if (!liveControl) return;
+
+      const [r, g, b] = rgb;
+
+      // Fill all LEDs in the visualization proxy
+      for (let i = 0; i < DEFAULT_LED_COUNT; i++) {
+        ledStateProxy.colors[i * 3] = r;
+        ledStateProxy.colors[i * 3 + 1] = g;
+        ledStateProxy.colors[i * 3 + 2] = b;
+      }
+      ledStateProxy.lastUpdated = performance.now();
+
+      // Throttle REST sends to ~30fps
+      const now = performance.now();
+      if (now - lastSendTimeRef.current < SEND_INTERVAL_MS) return;
+      lastSendTimeRef.current = now;
+
+      const ip = connectionStore.getState().ip;
+      if (!ip) return;
+
+      fetch(`http://${ip}/json/state`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ seg: [{ col: [[r, g, b]] }] }),
+      }).catch(() => {});
+    },
+    [liveControl],
+  );
+
   const getColorAtPosition = useCallback(
     (clientX: number, clientY: number) => {
       const canvas = canvasRef.current;
@@ -138,8 +179,9 @@ export function XYColorGrid({ onColorSelect, selectedColor }: XYColorGridProps) 
       const lightness = brightness * 0.5;
       const rgb = hslToRgb(hue, 1.0, lightness);
       onColorSelect(rgb);
+      sendToCube(rgb);
     },
-    [onColorSelect],
+    [onColorSelect, sendToCube],
   );
 
   const handlePointerDown = useCallback(
