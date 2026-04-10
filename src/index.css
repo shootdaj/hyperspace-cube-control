@@ -5,12 +5,8 @@
 @import "@fontsource-variable/jetbrains-mono";
 @import "@fontsource-variable/inter";
 
-/* Theme CSS custom property sets */
-@import "./themes/midnight-grid.css";
+/* Theme CSS */
 @import "./themes/neon-void.css";
-@import "./themes/brutalist.css";
-@import "./themes/ember.css";
-@import "./themes/phosphor.css";
 
 @custom-variant dark (&:is(.dark *));
 

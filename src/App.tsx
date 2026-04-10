@@ -16,7 +16,6 @@ import { SACNController } from '@/core/wled/SACNController';
 import { ledStateProxy } from '@/core/store/ledStateProxy';
 import { SACNBridgeOutput } from '@/plugins/outputs/SACNBridgeOutput';
 import { InputPipelineRunner } from '@/core/pipeline/InputPipelineRunner';
-import { ThemePickerCompact } from '@/themes/ThemePicker';
 import { PlayPauseButton } from '@/ui/PlayPauseButton';
 import { Box } from 'lucide-react';
 
@@ -188,7 +187,6 @@ export default function App() {
           </h1>
         </div>
         <div className="flex items-center gap-4">
-          <ThemePickerCompact />
           {status === 'connected' && <PlayPauseButton />}
           <ConnectionStatus />
         </div>
