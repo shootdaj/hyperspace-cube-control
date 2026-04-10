@@ -14,7 +14,6 @@ import { CameraControls } from './CameraControls';
 import { ThemePicker } from '@/themes/ThemePicker';
 import { ConnectionSettings } from './ConnectionSettings';
 import { paintStore } from '@/stores/paintStore';
-import { SACNController } from '@/core/wled/SACNController';
 import { connectionStore } from '@/core/store/connectionStore';
 import {
   SlidersHorizontal,
