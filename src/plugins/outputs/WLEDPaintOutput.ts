@@ -1,4 +1,5 @@
 import { WLEDWebSocketService } from '@/core/wled/WLEDWebSocketService';
+import { connectionStore } from '@/core/store/connectionStore';
 import { DEFAULT_LED_COUNT, DEFAULT_FRAME_SIZE } from '@/core/constants';
 
 /**
@@ -80,15 +81,26 @@ export class WLEDPaintOutput {
     // Build contiguous ranges and send each
     const ranges = buildRanges(changed);
     const ws = WLEDWebSocketService.getInstance();
+    const useRest = ws.isWsAvailable() !== true;
 
     for (const range of ranges) {
       const payload: number[] = [range.start];
       for (let i = range.start; i <= range.end; i++) {
         payload.push(buf[i * 3], buf[i * 3 + 1], buf[i * 3 + 2]);
       }
-      ws.send({
-        seg: [{ id: 0, i: payload }],
-      });
+      if (useRest) {
+        // REST fallback for firmware without WebSocket (hs-1.7) and native apps
+        const ip = connectionStore.getState().ip;
+        if (ip) {
+          fetch(`http://${ip}/json/state`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ seg: [{ id: 0, i: payload }] }),
+          }).catch(() => {});
+        }
+      } else {
+        ws.send({ seg: [{ id: 0, i: payload }] });
+      }
     }
 
     // Update last-sent state
@@ -102,13 +114,26 @@ export class WLEDPaintOutput {
    */
   sendAll(buffer: Uint8Array): void {
     const ws = WLEDWebSocketService.getInstance();
+    const useRest = ws.isWsAvailable() !== true;
 
     // 224 LEDs fits in a single chunk
     const chunk: number[] = [0]; // start index
     for (let i = 0; i < DEFAULT_LED_COUNT; i++) {
       chunk.push(buffer[i * 3], buffer[i * 3 + 1], buffer[i * 3 + 2]);
     }
-    ws.send({ seg: [{ id: 0, i: chunk }] });
+    const payload = { seg: [{ id: 0, i: chunk }] };
+    if (useRest) {
+      const ip = connectionStore.getState().ip;
+      if (ip) {
+        fetch(`http://${ip}/json/state`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        }).catch(() => {});
+      }
+    } else {
+      ws.send(payload);
+    }
 
     // Update last-sent state
     this.lastSent.set(buffer.subarray(0, DEFAULT_FRAME_SIZE));
