@@ -63,7 +63,7 @@ export function ControlPanel() {
    * and disables it when leaving. Also kills the firmware effect so paint/sACN
    * has direct LED control.
    */
-  const handleTabChange = useCallback((tabId: string) => {
+  const handleTabChange = useCallback(async (tabId: string) => {
     const wasPaint = activeTab === 'paint';
     const isPaint = tabId === 'paint';
 
