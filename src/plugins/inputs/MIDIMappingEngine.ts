@@ -8,6 +8,7 @@ import { midiStore, type CCMapping, type NoteMapping } from '@/stores/midiStore'
 import { cubeStateStore } from '@/core/store/cubeStateStore';
 import { presetStore } from '@/core/store/presetStore';
 import { connectionStore } from '@/core/store/connectionStore';
+import { WLEDControlService } from '@/core/wled/WLEDControlService';
 import { ledStateProxy } from '@/core/store/ledStateProxy';
 import { DEFAULT_LED_COUNT } from '@/core/constants';
 
@@ -96,21 +97,28 @@ export function handleCCMessage(channel: number, cc: number, rawValue: number): 
  * Apply a mapped parameter value to the cube state.
  */
 export function applyCCParameter(target: CCMapping['target'], value: number): void {
+  const ip = connectionStore.getState().ip;
+  const service = ip ? WLEDControlService.getInstance(ip) : null;
+
   switch (target) {
     case 'brightness':
       cubeStateStore.getState().setBrightness(value);
+      service?.setBrightness(value);
       break;
     case 'speed':
       cubeStateStore.getState().setSpeed(value);
+      service?.setSpeed(value);
       break;
     case 'intensity':
       cubeStateStore.getState().setIntensity(value);
+      service?.setIntensity(value);
       break;
     case 'hue': {
       const [r, g, b] = hueToRGB(value);
       const colors = [...cubeStateStore.getState().colors];
       colors[0] = [r, g, b];
       cubeStateStore.getState().setColors(colors);
+      service?.setColors(colors);
       break;
     }
   }
