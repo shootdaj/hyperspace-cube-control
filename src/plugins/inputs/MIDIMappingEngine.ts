@@ -12,10 +12,6 @@ import { WLEDControlService } from '@/core/wled/WLEDControlService';
 import { ledStateProxy } from '@/core/store/ledStateProxy';
 import { DEFAULT_LED_COUNT } from '@/core/constants';
 
-/** Check if we can make HTTP requests to the cube (not on HTTPS page) */
-function canReachCube(): boolean {
-  return typeof window === 'undefined' || window.location.protocol !== 'https:';
-}
 
 /**
  * Maps a raw CC value (0-127) to a parameter's native range.
@@ -151,7 +147,7 @@ export function handleDrumPadNoteOn(_channel: number, note: number, _velocity: n
 
   // Fire REST directly to cube — bypasses sACN for instant response
   const ip = connectionStore.getState().ip;
-    if (ip && canReachCube()) {
+    if (ip) {
       fetch(`http://${ip}/json/state`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -181,7 +177,7 @@ export function handleDrumPadNoteOff(note: number): void {
 
   // Direct REST for instant response
   const ip = connectionStore.getState().ip;
-    if (ip && canReachCube()) {
+    if (ip) {
       fetch(`http://${ip}/json/state`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
