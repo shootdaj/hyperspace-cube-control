@@ -6,17 +6,35 @@ import { computeLEDPositions } from './cubeGeometry';
 import { paintPlugin, paintOutput } from '@/plugins/inputs/paintSingleton';
 import { paintStore } from '@/stores/paintStore';
 import { getEdgeIndex, getEdgeFaces } from '@/plugins/inputs/cubeTopology';
+import { hslToRgb } from '@/plugins/mappings/AudioSpectrumMappingStrategy';
+import { SACNController } from '@/core/wled/SACNController';
+import { DEFAULT_LED_COUNT, DEFAULT_FRAME_SIZE } from '@/core/constants';
 
 // Pre-allocate ONE Color instance outside component — NEVER allocate inside useFrame
 const _color = new THREE.Color();
+
+// Pre-allocated buffer for sACN bridge — 224 LEDs x 3 bytes
+// Written in useFrame, sent to SACNController. NEVER allocate in useFrame.
+const _sacnFrame = new Uint8Array(DEFAULT_FRAME_SIZE);
+let _lastSacnSendTime = 0;
+const _SACN_SEND_INTERVAL_MS = 33; // ~30fps — matches keep-alive rate
 
 /**
  * Apply paint to the ManualPaintPlugin buffer and sync to ledStateProxy.
  * Called from pointer event handlers — must be fast, no React state.
  */
 function applyPaint(ledIndex: number): void {
-  const { color, brushSize } = paintStore.getState();
-  const [r, g, b] = color;
+  const state = paintStore.getState();
+  const { brushSize } = state;
+
+  let r: number, g: number, b: number;
+  if (state.rainbowMode) {
+    const hue = state.incrementRainbowHueCounter();
+    [r, g, b] = hslToRgb(hue, 1.0, 0.5);
+    state.setColor([r, g, b]);
+  } else {
+    [r, g, b] = state.color;
+  }
 
   switch (brushSize) {
     case 'single':
@@ -44,7 +62,7 @@ function applyPaint(ledIndex: number): void {
 }
 
 /**
- * CubeMesh — renders all 480 HyperCube LEDs as InstancedMesh spheres.
+ * CubeMesh — renders all 224 HyperCube LEDs as InstancedMesh spheres.
  *
  * Hot path: useFrame reads ledStateProxy.colors DIRECTLY (not useSnapshot).
  * useSnapshot would create React subscriptions -> 60 re-renders/sec -> performance collapse.
@@ -107,24 +125,51 @@ export function CubeMesh() {
 
     // Direct Valtio proxy read — no subscription, no re-render
     const buf = ledStateProxy.colors;
-    for (let i = 0; i < 480; i++) {
-      // Scale to 0-1.5 range so bright LEDs (near 255) produce HDR values > 1.0
-      // Bloom luminanceThreshold=0.5 will pick up LEDs with normalized value > 0.5
-      const scale = 1.5 / 255; // maps 255 -> 1.5 (above bloom threshold)
-      _color.setRGB(
-        buf[i * 3] * scale,
-        buf[i * 3 + 1] * scale,
-        buf[i * 3 + 2] * scale,
-      );
+    const count = Math.min(positions.length, DEFAULT_LED_COUNT);
+    for (let i = 0; i < count; i++) {
+      const r = buf[i * 3];
+      const g = buf[i * 3 + 1];
+      const b = buf[i * 3 + 2];
+      if (r === 0 && g === 0 && b === 0) {
+        // Dim glow for off LEDs so cube shape stays visible
+        _color.setRGB(0.06, 0.06, 0.08);
+      } else {
+        // Scale to 0-1.5 range so bright LEDs produce HDR values > 1.0 for bloom
+        const scale = 1.5 / 255;
+        _color.setRGB(r * scale, g * scale, b * scale);
+      }
       mesh.setColorAt(i, _color);
     }
     mesh.instanceColor.needsUpdate = true;
+
+    // Bridge ledStateProxy to sACN: when sACN is running, copy the first 224 LEDs
+    // from ledStateProxy and send to the physical cube — for ALL input modes
+    // (paint, audio, camera, video). Throttled to ~30fps.
+    {
+      const now = performance.now();
+      if (now - _lastSacnSendTime >= _SACN_SEND_INTERVAL_MS) {
+        try {
+          const sacn = SACNController.getInstance();
+          if (sacn.isActive()) {
+            // Copy first 672 bytes (224 LEDs x 3) from the proxy buffer
+            _sacnFrame.set(buf.subarray(0, DEFAULT_FRAME_SIZE));
+            sacn.sendFrame(_sacnFrame);
+            _lastSacnSendTime = now;
+          }
+        } catch {
+          // SACNController not initialized — ignore
+        }
+      }
+    }
   });
 
   const handlePointerDown = useCallback((e: ThreeEvent<PointerEvent>) => {
     if (!paintStore.getState().isPaintMode) return;
     if (e.instanceId === undefined) return;
     e.stopPropagation();
+    if (paintStore.getState().rainbowMode) {
+      paintStore.getState().resetRainbowHueCounter();
+    }
     paintingRef.current = true;
     lastPaintedRef.current = e.instanceId;
     applyPaint(e.instanceId);
@@ -147,7 +192,7 @@ export function CubeMesh() {
   return (
     <instancedMesh
       ref={meshRef}
-      args={[geometry, material, 480]}
+      args={[geometry, material, DEFAULT_LED_COUNT]}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}

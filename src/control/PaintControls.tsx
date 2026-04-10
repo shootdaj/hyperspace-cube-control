@@ -47,6 +47,7 @@ export function PaintControls() {
   const isPaintMode = paintStore((s) => s.isPaintMode);
   const brushSize = paintStore((s) => s.brushSize);
   const color = paintStore((s) => s.color);
+  const rainbowMode = paintStore((s) => s.rainbowMode);
 
   const hexColor = rgbToHex(color[0], color[1], color[2]);
 
@@ -94,6 +95,25 @@ export function PaintControls() {
         >
           {isPaintMode ? 'Paint Mode: ON' : 'Paint Mode: OFF'}
         </Button>
+        {isPaintMode && (
+          <Button
+            aria-label="Rainbow Mode"
+            variant={rainbowMode ? 'default' : 'outline'}
+            className={`w-full min-h-11 text-sm font-medium ${
+              rainbowMode
+                ? 'text-white border-0'
+                : 'border-border text-muted-foreground hover:text-foreground'
+            }`}
+            style={
+              rainbowMode
+                ? { background: 'linear-gradient(90deg, #f00, #ff0, #0f0, #0ff, #00f, #f0f, #f00)' }
+                : undefined
+            }
+            onClick={() => paintStore.getState().setRainbowMode(!paintStore.getState().rainbowMode)}
+          >
+            {rainbowMode ? 'Rainbow: ON' : 'Rainbow: OFF'}
+          </Button>
+        )}
       </div>
 
       <Separator className="bg-border" />
