@@ -1,7 +1,7 @@
 import type { InputPlugin, FrameData, PluginContext } from '@/core/pipeline/types';
 import { isMIDISupported } from './midiSupport';
 import { midiStore, type MIDIDeviceInfo } from '@/stores/midiStore';
-import { handleCCMessage, handleNoteOnMessage } from './MIDIMappingEngine';
+import { handleCCMessage, handleNoteOnMessage, handleNoteOffMessage } from './MIDIMappingEngine';
 
 // Dynamically import webmidi to avoid errors on unsupported browsers
 let WebMidiModule: typeof import('webmidi') | null = null;
@@ -131,13 +131,21 @@ export class MIDIPlugin implements InputPlugin {
         handleNoteOnMessage(channel, note, velocity);
       };
 
+      const onNoteOff = (e: { note: { number: number }; message: { channel: number } }) => {
+        const channel = e.message.channel;
+        const note = e.note.number;
+        handleNoteOffMessage(channel, note);
+      };
+
       input.addListener('controlchange', onCC as never);
       input.addListener('noteon', onNoteOn as never);
+      input.addListener('noteoff', onNoteOff as never);
 
       this.cleanupFns.push(() => {
         try {
           input.removeListener('controlchange', onCC as never);
           input.removeListener('noteon', onNoteOn as never);
+          input.removeListener('noteoff', onNoteOff as never);
         } catch {
           // Input may have been disconnected
         }
@@ -158,6 +166,7 @@ export class MIDIPlugin implements InputPlugin {
       try {
         input.removeListener('controlchange');
         input.removeListener('noteon');
+        input.removeListener('noteoff');
       } catch {
         // Input may have been disconnected
       }
