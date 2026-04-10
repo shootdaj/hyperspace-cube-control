@@ -4,9 +4,14 @@ const config: CapacitorConfig = {
   appId: 'com.hypercube.control',
   appName: 'HyperCube',
   webDir: 'dist',
+  plugins: {
+    // Route all fetch() through native HTTP layer — bypasses WebView
+    // CORS, mixed content, and private network access restrictions
+    CapacitorHttp: {
+      enabled: true,
+    },
+  },
   server: {
-    // Use http:// scheme instead of https:// to avoid mixed content blocking
-    // when making HTTP requests to local WLED devices
     androidScheme: 'http',
     cleartext: true,
   },
