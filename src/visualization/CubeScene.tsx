@@ -109,12 +109,6 @@ export function CubeScene() {
       <PaintAwareControls />
       <RendererMonitor />
 
-      {/* Visible wireframe cube so the shape is always visible even when LEDs are off */}
-      <mesh>
-        <boxGeometry args={[1, 1, 1]} />
-        <meshBasicMaterial color="#1a1a2e" wireframe transparent opacity={0.6} />
-      </mesh>
-
       {/* Grid floor for spatial grounding */}
       <GridFloor />
 
