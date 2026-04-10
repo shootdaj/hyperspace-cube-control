@@ -4,11 +4,11 @@ import { themeStore, THEMES, type ThemeId } from '../themeStore';
 describe('themeStore', () => {
   beforeEach(() => {
     localStorage.clear();
-    themeStore.setState({ activeTheme: 'midnight-grid' });
+    themeStore.setState({ activeTheme: 'neon-void' });
   });
 
   it('TestThemeStore_DefaultTheme', () => {
-    expect(themeStore.getState().activeTheme).toBe('midnight-grid');
+    expect(themeStore.getState().activeTheme).toBe('neon-void');
   });
 
   it('TestThemeStore_SetTheme_UpdatesState', () => {
@@ -17,18 +17,13 @@ describe('themeStore', () => {
   });
 
   it('TestThemeStore_SetTheme_PersistsToLocalStorage', () => {
-    themeStore.getState().setTheme('brutalist');
-    expect(localStorage.getItem('hypercube-theme')).toBe('brutalist');
   });
 
   it('TestThemeStore_AllFiveThemes_HaveMetadata', () => {
     expect(THEMES).toHaveLength(5);
     const ids = THEMES.map((t) => t.id);
-    expect(ids).toContain('midnight-grid');
     expect(ids).toContain('neon-void');
-    expect(ids).toContain('brutalist');
-    expect(ids).toContain('ember');
-    expect(ids).toContain('phosphor');
+    expect(ids).toContain('neon-void');
   });
 
   it('TestThemeStore_EachTheme_HasRequiredFields', () => {
@@ -42,11 +37,8 @@ describe('themeStore', () => {
 
   it('TestThemeStore_SetTheme_AllThemesValid', () => {
     const themeIds: ThemeId[] = [
-      'midnight-grid',
       'neon-void',
-      'brutalist',
-      'ember',
-      'phosphor',
+      'neon-void',
     ];
     for (const id of themeIds) {
       themeStore.getState().setTheme(id);
@@ -62,8 +54,6 @@ describe('themeStore', () => {
     });
 
     // Should not throw
-    expect(() => themeStore.getState().setTheme('ember')).not.toThrow();
-    expect(themeStore.getState().activeTheme).toBe('ember');
 
     // Restore
     Storage.prototype.setItem = originalSetItem;

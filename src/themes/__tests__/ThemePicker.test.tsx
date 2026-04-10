@@ -7,7 +7,7 @@ import { themeStore, THEMES } from '@/core/store/themeStore';
 describe('ThemePicker', () => {
   beforeEach(() => {
     localStorage.clear();
-    themeStore.setState({ activeTheme: 'midnight-grid' });
+    themeStore.setState({ activeTheme: 'neon-void' });
   });
 
   it('TestThemePicker_RendersAllFiveThemes', () => {
@@ -60,7 +60,7 @@ describe('ThemePicker', () => {
 describe('ThemePickerCompact', () => {
   beforeEach(() => {
     localStorage.clear();
-    themeStore.setState({ activeTheme: 'midnight-grid' });
+    themeStore.setState({ activeTheme: 'neon-void' });
   });
 
   it('TestThemePickerCompact_RendersAllFiveSwatches', () => {

@@ -6,7 +6,7 @@ import { themeStore } from '@/core/store/themeStore';
 describe('ThemeProvider', () => {
   beforeEach(() => {
     localStorage.clear();
-    themeStore.setState({ activeTheme: 'midnight-grid' });
+    themeStore.setState({ activeTheme: 'neon-void' });
     document.documentElement.removeAttribute('data-theme');
   });
 
@@ -16,7 +16,7 @@ describe('ThemeProvider', () => {
         <div>child</div>
       </ThemeProvider>,
     );
-    expect(document.documentElement.getAttribute('data-theme')).toBe('midnight-grid');
+    expect(document.documentElement.getAttribute('data-theme')).toBe('neon-void');
   });
 
   it('TestThemeProvider_UpdatesOnThemeChange', () => {
