@@ -119,6 +119,7 @@ export default function App() {
     effectPaletteStore.getState().fetchPalettes(client);
 
     // Start sACN control: kill local pattern and begin keep-alive loop
+    // Also populate 3D viz with cube's current color
     let sacnController: SACNController | null = null;
     const startSACN = async () => {
       try {
@@ -129,6 +130,23 @@ export default function App() {
       } catch (err) {
         console.warn('[App] sACN control failed to start (bridge may not be running):', err);
       }
+      // Always sync 3D viz with cube's actual color (fallback if sACN didn't populate it)
+      try {
+        const state = await client.getState();
+        const col = state.seg?.[0]?.col?.[0];
+        if (col) {
+          const [r, g, b] = col;
+          const bri = state.bri / 255;
+          const { ledStateProxy } = await import('@/core/store/ledStateProxy');
+          for (let i = 0; i < 224; i++) {
+            ledStateProxy.colors[i * 3] = Math.round(r * bri);
+            ledStateProxy.colors[i * 3 + 1] = Math.round(g * bri);
+            ledStateProxy.colors[i * 3 + 2] = Math.round(b * bri);
+          }
+          ledStateProxy.lastUpdated = performance.now();
+          console.info(`[App] 3D viz synced: rgb(${r},${g},${b}) @ bri ${state.bri}`);
+        }
+      } catch { /* ignore */ }
     };
     void startSACN();
 
