@@ -158,7 +158,7 @@ export function XYColorGrid({ onColorSelect, selectedColor, liveControl = false 
       fetch(`http://${ip}/json/state`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ seg: [{ col: [[r, g, b]] }] }),
+        body: JSON.stringify({ on: true, bri: 255, seg: [{ fx: 0, col: [[r, g, b]] }] }),
       }).catch(() => {});
     },
     [liveControl],
