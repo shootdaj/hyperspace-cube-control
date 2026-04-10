@@ -1,5 +1,6 @@
 import { SACNBridgeOutput } from '@/plugins/outputs/SACNBridgeOutput';
 import { WLEDRestClient } from './WLEDRestClient';
+import { ledStateProxy } from '@/core/store/ledStateProxy';
 import type { WLEDState } from '@/core/store/types';
 
 /**
@@ -118,6 +119,9 @@ export class SACNController {
         this.lastFrame[i * 3 + 2] = Math.round(b * bri);
       }
       console.log(`[SACNController] Initial frame: rgb(${r},${g},${b}) @ bri ${this.savedState.bri}`);
+      // Sync 3D visualization with the cube's current color
+      ledStateProxy.colors.set(this.lastFrame);
+      ledStateProxy.lastUpdated = performance.now();
     }
 
     // 4. Start keep-alive loop at 30fps
