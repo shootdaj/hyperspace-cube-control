@@ -13,11 +13,6 @@ describe('PaintControls', () => {
     });
   });
 
-  it('TestPaintControls_Renders_ToggleButton', () => {
-    render(<PaintControls />);
-    expect(screen.getByRole('button', { name: /paint mode/i })).toBeInTheDocument();
-  });
-
   it('TestPaintControls_Renders_BrushSizeButtons', () => {
     render(<PaintControls />);
     expect(screen.getByRole('button', { name: /single/i })).toBeInTheDocument();
@@ -35,15 +30,19 @@ describe('PaintControls', () => {
     expect(screen.getByRole('button', { name: /fill/i })).toBeInTheDocument();
   });
 
-  it('TestPaintControls_Toggle_UpdatesPaintMode', () => {
+  it('TestPaintControls_NoToggleButton_PaintAutoEnabled', () => {
     render(<PaintControls />);
-    const toggle = screen.getByRole('button', { name: /paint mode/i });
+    // Paint mode toggle button removed — paint mode is auto-enabled by ControlPanel
+    // when the paint tab is active. No toggle button should exist.
+    const toggleButtons = screen.queryAllByRole('button', { name: /paint mode/i });
+    expect(toggleButtons).toHaveLength(0);
+  });
 
-    expect(paintStore.getState().isPaintMode).toBe(false);
-    fireEvent.click(toggle);
-    expect(paintStore.getState().isPaintMode).toBe(true);
-    fireEvent.click(toggle);
-    expect(paintStore.getState().isPaintMode).toBe(false);
+  it('TestPaintControls_NoRainbowButton', () => {
+    render(<PaintControls />);
+    // Rainbow toggle button removed
+    const rainbowButtons = screen.queryAllByRole('button', { name: /rainbow/i });
+    expect(rainbowButtons).toHaveLength(0);
   });
 
   it('TestPaintControls_BrushSize_SelectEdge', () => {

@@ -3,11 +3,12 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { paintStore, type BrushSize } from '@/stores/paintStore';
-import { paintPlugin, paintOutput } from '@/plugins/inputs/paintSingleton';
+import { paintPlugin } from '@/plugins/inputs/paintSingleton';
 import { ledStateProxy } from '@/core/store/ledStateProxy';
 import { connectionStore } from '@/core/store/connectionStore';
 import { SACNController } from '@/core/wled/SACNController';
 import { XYColorGrid } from './XYColorGrid';
+import { DEFAULT_LED_COUNT, BYTES_PER_LED } from '@/core/constants';
 
 const BRUSH_OPTIONS: { value: BrushSize; label: string; description: string }[] = [
   { value: 'single', label: 'Single', description: 'One LED' },
@@ -16,37 +17,45 @@ const BRUSH_OPTIONS: { value: BrushSize; label: string; description: string }[] 
 ];
 
 /**
- * PaintControls — color picker, brush size selector, paint mode toggle,
- * and clear/fill actions for manual LED painting.
+ * Send the full LED buffer to the cube via REST API (non-sACN fallback).
+ * Uses WLED seg.i format with all 224 LEDs.
+ */
+function sendFullBufferViaRest(buffer: Uint8Array): void {
+  const ip = connectionStore.getState().ip;
+  if (!ip) return;
+
+  const payload: (number | string)[] = [0];
+  for (let i = 0; i < DEFAULT_LED_COUNT; i++) {
+    const off = i * BYTES_PER_LED;
+    const r = buffer[off];
+    const g = buffer[off + 1];
+    const b = buffer[off + 2];
+    payload.push(
+      (r < 16 ? '0' : '') + r.toString(16) +
+      (g < 16 ? '0' : '') + g.toString(16) +
+      (b < 16 ? '0' : '') + b.toString(16),
+    );
+  }
+
+  fetch(`http://${ip}/json/state`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ seg: { i: payload } }),
+  }).catch(() => {});
+}
+
+/**
+ * PaintControls — color picker, brush size selector, and clear/fill actions
+ * for manual LED painting.
+ *
+ * Paint mode is auto-enabled by ControlPanel when the paint tab is active.
+ * No toggle needed — opening the paint tab = paint mode on, leaving = off.
  *
  * All touch targets are min-h-11 (44px) for mobile accessibility.
  */
 export function PaintControls() {
-  const isPaintMode = paintStore((s) => s.isPaintMode);
   const brushSize = paintStore((s) => s.brushSize);
   const color = paintStore((s) => s.color);
-  const rainbowMode = paintStore((s) => s.rainbowMode);
-
-  const handleTogglePaintMode = useCallback(() => {
-    const entering = !paintStore.getState().isPaintMode;
-    paintStore.getState().setIsPaintMode(entering);
-
-    // Kill firmware effect when entering paint mode without sACN
-    if (entering) {
-      let sacnActive = false;
-      try { sacnActive = SACNController.getInstance().isActive(); } catch { /* not initialized */ }
-      if (!sacnActive) {
-        const ip = connectionStore.getState().ip;
-        if (ip) {
-          fetch(`http://${ip}/json/state`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ on: true, bri: 255, seg: [{ fx: 0, sx: 0, ix: 0 }] }),
-          }).catch(() => {});
-        }
-      }
-    }
-  }, []);
 
   const handleColorSelect = useCallback((rgb: [number, number, number]) => {
     paintStore.getState().setColor(rgb);
@@ -58,59 +67,36 @@ export function PaintControls() {
 
   const handleClear = useCallback(() => {
     paintPlugin.fill(0, 0, 0);
-    ledStateProxy.colors.set(paintPlugin.getBuffer());
+    const buf = paintPlugin.getBuffer();
+    ledStateProxy.colors.set(buf);
     ledStateProxy.lastUpdated = performance.now();
-    paintOutput.sendAll(paintPlugin.getBuffer());
+
+    // Send to cube: sACN path handles it via useFrame reading ledStateProxy,
+    // REST fallback for when sACN is not active
+    let sacnActive = false;
+    try { sacnActive = SACNController.getInstance().isActive(); } catch { /* not init */ }
+    if (!sacnActive) {
+      sendFullBufferViaRest(buf);
+    }
   }, []);
 
   const handleFill = useCallback(() => {
     const [r, g, b] = paintStore.getState().color;
     paintPlugin.fill(r, g, b);
-    ledStateProxy.colors.set(paintPlugin.getBuffer());
+    const buf = paintPlugin.getBuffer();
+    ledStateProxy.colors.set(buf);
     ledStateProxy.lastUpdated = performance.now();
-    paintOutput.sendAll(paintPlugin.getBuffer());
+
+    // Send to cube
+    let sacnActive = false;
+    try { sacnActive = SACNController.getInstance().isActive(); } catch { /* not init */ }
+    if (!sacnActive) {
+      sendFullBufferViaRest(buf);
+    }
   }, []);
 
   return (
     <div className="space-y-4">
-      {/* Paint Mode Toggle */}
-      <div className="space-y-2">
-        <Label className="text-sm font-medium">Paint Mode</Label>
-        <Button
-          aria-label="Paint Mode"
-          variant={isPaintMode ? 'default' : 'outline'}
-          className={`w-full min-h-11 text-sm font-medium ${
-            isPaintMode
-              ? 'bg-green-600 hover:bg-green-700 text-white'
-              : 'border-border text-muted-foreground hover:text-foreground'
-          }`}
-          onClick={handleTogglePaintMode}
-        >
-          {isPaintMode ? 'Paint Mode: ON' : 'Paint Mode: OFF'}
-        </Button>
-        {isPaintMode && (
-          <Button
-            aria-label="Rainbow Mode"
-            variant={rainbowMode ? 'default' : 'outline'}
-            className={`w-full min-h-11 text-sm font-medium ${
-              rainbowMode
-                ? 'text-white border-0'
-                : 'border-border text-muted-foreground hover:text-foreground'
-            }`}
-            style={
-              rainbowMode
-                ? { background: 'linear-gradient(90deg, #f00, #ff0, #0f0, #0ff, #00f, #f0f, #f00)' }
-                : undefined
-            }
-            onClick={() => paintStore.getState().setRainbowMode(!paintStore.getState().rainbowMode)}
-          >
-            {rainbowMode ? 'Rainbow: ON' : 'Rainbow: OFF'}
-          </Button>
-        )}
-      </div>
-
-      <Separator className="bg-border" />
-
       {/* XY Color Grid — live cube controller */}
       <div className="space-y-2">
         <Label className="text-sm font-medium">Color</Label>

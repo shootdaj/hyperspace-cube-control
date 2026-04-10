@@ -13,6 +13,7 @@ import { startStateSync } from '@/core/wled/WLEDStateSync';
 import { effectPaletteStore } from '@/core/store/effectPaletteStore';
 import { presetStore } from '@/core/store/presetStore';
 import { SACNController } from '@/core/wled/SACNController';
+import { ledStateProxy } from '@/core/store/ledStateProxy';
 import { SACNBridgeOutput } from '@/plugins/outputs/SACNBridgeOutput';
 import { InputPipelineRunner } from '@/core/pipeline/InputPipelineRunner';
 import { ThemePickerCompact } from '@/themes/ThemePicker';
@@ -130,14 +131,13 @@ export default function App() {
       } catch (err) {
         console.warn('[App] sACN control failed to start (bridge may not be running):', err);
       }
-      // Always sync 3D viz with cube's actual color (fallback if sACN didn't populate it)
+      // Always sync 3D viz with cube's actual color
       try {
         const state = await client.getState();
         const col = state.seg?.[0]?.col?.[0];
         if (col) {
           const [r, g, b] = col;
           const bri = state.bri / 255;
-          const { ledStateProxy } = await import('@/core/store/ledStateProxy');
           for (let i = 0; i < 224; i++) {
             ledStateProxy.colors[i * 3] = Math.round(r * bri);
             ledStateProxy.colors[i * 3 + 1] = Math.round(g * bri);
@@ -146,7 +146,9 @@ export default function App() {
           ledStateProxy.lastUpdated = performance.now();
           console.info(`[App] 3D viz synced: rgb(${r},${g},${b}) @ bri ${state.bri}`);
         }
-      } catch { /* ignore */ }
+      } catch (err) {
+        console.warn('[App] Failed to sync 3D viz:', err);
+      }
     };
     void startSACN();
 

@@ -15,3 +15,8 @@ export const ledStateProxy = proxy({
   colors: new Uint8Array(DEFAULT_LED_COUNT * BYTES_PER_LED),
   lastUpdated: 0,
 });
+
+// Debug: expose on window so we can check from console
+if (typeof window !== 'undefined') {
+  (window as unknown as Record<string, unknown>).__ledProxy = ledStateProxy;
+}

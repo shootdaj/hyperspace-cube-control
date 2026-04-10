@@ -3,12 +3,13 @@ import { useFrame, type ThreeEvent } from '@react-three/fiber';
 import * as THREE from 'three';
 import { ledStateProxy } from '@/core/store/ledStateProxy';
 import { computeLEDPositions } from './cubeGeometry';
-import { paintPlugin, paintOutput } from '@/plugins/inputs/paintSingleton';
+import { paintPlugin } from '@/plugins/inputs/paintSingleton';
 import { paintStore } from '@/stores/paintStore';
 import { getEdgeIndex, getEdgeFaces } from '@/plugins/inputs/cubeTopology';
 import { hslToRgb } from '@/plugins/mappings/AudioSpectrumMappingStrategy';
 import { SACNController } from '@/core/wled/SACNController';
-import { DEFAULT_LED_COUNT, DEFAULT_FRAME_SIZE } from '@/core/constants';
+import { connectionStore } from '@/core/store/connectionStore';
+import { DEFAULT_LED_COUNT, DEFAULT_FRAME_SIZE, BYTES_PER_LED } from '@/core/constants';
 
 // Pre-allocate ONE Color instance outside component — NEVER allocate inside useFrame
 const _color = new THREE.Color();
@@ -19,9 +20,62 @@ const _sacnFrame = new Uint8Array(DEFAULT_FRAME_SIZE);
 let _lastSacnSendTime = 0;
 const _SACN_SEND_INTERVAL_MS = 33; // ~30fps — matches keep-alive rate
 
+// Flag checked by useFrame to force an immediate sACN send after paint.
+// Set by applyPaint(), cleared by useFrame after sending.
+let _paintDirty = false;
+
+// REST fallback throttle for when sACN is unavailable
+let _lastRestSendTime = 0;
+const _REST_SEND_INTERVAL_MS = 33; // ~30fps
+
+/**
+ * Send the full LED buffer to the cube via REST API.
+ *
+ * Uses WLED's seg.i format with hex color strings.
+ * This is the fallback path when sACN bridge is not active/connected.
+ * Throttled to ~30fps to avoid overwhelming the ESP32.
+ */
+function sendPaintViaRest(buffer: Uint8Array): void {
+  const now = performance.now();
+  if (now - _lastRestSendTime < _REST_SEND_INTERVAL_MS) return;
+  _lastRestSendTime = now;
+
+  const ip = connectionStore.getState().ip;
+  if (!ip) return;
+
+  // Build seg.i payload: [startIndex, "hex1", "hex2", ...] for all 224 LEDs.
+  // Sending the full buffer every time ensures the cube shows exactly what
+  // the 3D viz shows, avoiding stale state from the firmware effect loop.
+  const payload: (number | string)[] = [0]; // start at LED 0
+  for (let i = 0; i < DEFAULT_LED_COUNT; i++) {
+    const off = i * BYTES_PER_LED;
+    const r = buffer[off];
+    const g = buffer[off + 1];
+    const b = buffer[off + 2];
+    payload.push(
+      (r < 16 ? '0' : '') + r.toString(16) +
+      (g < 16 ? '0' : '') + g.toString(16) +
+      (b < 16 ? '0' : '') + b.toString(16),
+    );
+  }
+
+  fetch(`http://${ip}/json/state`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ seg: { i: payload } }),
+  }).catch(() => {});
+}
+
 /**
  * Apply paint to the ManualPaintPlugin buffer and sync to ledStateProxy.
  * Called from pointer event handlers — must be fast, no React state.
+ *
+ * Output strategy:
+ * - Primary: sACN bridge in useFrame reads ledStateProxy.colors and sends
+ *   to the cube. _paintDirty flag forces immediate send (bypasses 33ms throttle).
+ * - Fallback: When sACN is not active, sends full LED state via REST API.
+ *   Uses seg.i with the complete buffer (not diff-based) because WLED's
+ *   firmware effect can overwrite partial updates.
  */
 function applyPaint(ledIndex: number): void {
   const state = paintStore.getState();
@@ -52,13 +106,21 @@ function applyPaint(ledIndex: number): void {
     }
   }
 
-  // Optimistic local update: copy entire paint buffer to ledStateProxy
-  // for instant visual feedback (next useFrame will render it)
-  ledStateProxy.colors.set(paintPlugin.getBuffer());
+  // Copy entire paint buffer to ledStateProxy for instant visual feedback
+  // (next useFrame will render it AND send via sACN)
+  const buf = paintPlugin.getBuffer();
+  ledStateProxy.colors.set(buf);
   ledStateProxy.lastUpdated = performance.now();
 
-  // Async send to physical cube — diff-based, throttled to 30fps
-  paintOutput.sendPaint(paintPlugin.getBuffer());
+  // Signal useFrame to send immediately via sACN (bypass 33ms throttle)
+  _paintDirty = true;
+
+  // REST fallback: when sACN is not active, send directly via REST
+  let sacnActive = false;
+  try { sacnActive = SACNController.getInstance().isActive(); } catch { /* not init */ }
+  if (!sacnActive) {
+    sendPaintViaRest(buf);
+  }
 }
 
 /**
@@ -145,9 +207,13 @@ export function CubeMesh() {
     // Bridge ledStateProxy to sACN: when sACN is running, copy the first 224 LEDs
     // from ledStateProxy and send to the physical cube — for ALL input modes
     // (paint, audio, camera, video). Throttled to ~30fps.
+    //
+    // _paintDirty bypasses the throttle so paint clicks are sent immediately
+    // (within one frame = ~16ms) instead of waiting up to 33ms.
     {
       const now = performance.now();
-      if (now - _lastSacnSendTime >= _SACN_SEND_INTERVAL_MS) {
+      const shouldSend = _paintDirty || (now - _lastSacnSendTime >= _SACN_SEND_INTERVAL_MS);
+      if (shouldSend) {
         try {
           const sacn = SACNController.getInstance();
           if (sacn.isActive()) {
@@ -159,6 +225,7 @@ export function CubeMesh() {
         } catch {
           // SACNController not initialized — ignore
         }
+        _paintDirty = false;
       }
     }
   });

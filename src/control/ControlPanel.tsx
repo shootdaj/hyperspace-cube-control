@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { Separator } from '@/components/ui/separator';
 import { PowerBrightnessPanel } from './PowerBrightnessPanel';
 import { SpeedIntensityPanel } from './SpeedIntensityPanel';
@@ -13,6 +13,9 @@ import { VideoControls } from './VideoControls';
 import { CameraControls } from './CameraControls';
 import { ThemePicker } from '@/themes/ThemePicker';
 import { ConnectionSettings } from './ConnectionSettings';
+import { paintStore } from '@/stores/paintStore';
+import { SACNController } from '@/core/wled/SACNController';
+import { connectionStore } from '@/core/store/connectionStore';
 import {
   SlidersHorizontal,
   Paintbrush,
@@ -56,6 +59,40 @@ const NAV_ITEMS: NavItem[] = [
 export function ControlPanel() {
   const [activeTab, setActiveTab] = useState('controls');
 
+  /**
+   * Handle tab changes. Auto-enables paint mode when switching to the paint tab
+   * and disables it when leaving. Also kills the firmware effect so paint/sACN
+   * has direct LED control.
+   */
+  const handleTabChange = useCallback((tabId: string) => {
+    const wasPaint = activeTab === 'paint';
+    const isPaint = tabId === 'paint';
+
+    setActiveTab(tabId);
+
+    if (isPaint && !wasPaint) {
+      // Entering paint tab — enable paint mode automatically
+      paintStore.getState().setIsPaintMode(true);
+
+      // Kill firmware effect for direct LED control (same as old toggle did)
+      let sacnActive = false;
+      try { sacnActive = SACNController.getInstance().isActive(); } catch { /* not init */ }
+      if (!sacnActive) {
+        const ip = connectionStore.getState().ip;
+        if (ip) {
+          fetch(`http://${ip}/json/state`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ on: true, bri: 255, seg: [{ fx: 0, sx: 0, ix: 0 }] }),
+          }).catch(() => {});
+        }
+      }
+    } else if (wasPaint && !isPaint) {
+      // Leaving paint tab — disable paint mode
+      paintStore.getState().setIsPaintMode(false);
+    }
+  }, [activeTab]);
+
   return (
     <div className="h-full flex flex-col md:flex-row bg-background theme-panel-texture">
       {/* Navigation — horizontal on mobile, vertical on desktop */}
@@ -68,7 +105,7 @@ export function ControlPanel() {
             return (
               <button
                 key={item.id}
-                onClick={() => setActiveTab(item.id)}
+                onClick={() => handleTabChange(item.id)}
                 className={`
                   flex items-center gap-1.5 px-3 py-2 rounded-md text-xs font-medium shrink-0
                   transition-all duration-150 cursor-pointer min-h-[40px]
@@ -94,7 +131,7 @@ export function ControlPanel() {
             return (
               <button
                 key={item.id}
-                onClick={() => setActiveTab(item.id)}
+                onClick={() => handleTabChange(item.id)}
                 title={item.label}
                 className={`
                   relative flex items-center justify-center w-9 h-9 rounded-md
