@@ -4,21 +4,22 @@
  * Starts a WebSocket server alongside the Vite dev server that bridges
  * browser WebSocket frames to sACN unicast UDP for the HyperCube.
  *
- * The browser sends 672-byte binary frames (224 LEDs x 3 RGB bytes).
- * These are split into 2 DMX universes and forwarded via sACN unicast.
+ * sACN packets are sent via a Python subprocess (sacn-relay.py) to bypass
+ * macOS Local Network permission restrictions on Node.js.
  *
- * Universe layout:
- *   Universe 1: channels 1-510 (LEDs 0-169, 170 LEDs x 3 = 510 channels)
- *   Universe 2: channels 1-162 (LEDs 170-223, 54 LEDs x 3 = 162 channels)
+ * The browser sends 672-byte binary frames (224 LEDs x 3 RGB bytes).
+ * The Python relay splits them into 2 DMX universes and forwards via sACN unicast.
  *
  * Config:
  *   VITE_CUBE_IP env var or .env file (default: 192.168.1.160)
  */
 
+import { spawn, type ChildProcess } from 'node:child_process';
+import { resolve, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import http from 'node:http';
 import { URL } from 'node:url';
 import type { Plugin } from 'vite';
-import { Sender } from 'sacn';
 import { WebSocketServer, WebSocket } from 'ws';
 
 const PREFIX = '[sACN Bridge]';
@@ -30,15 +31,9 @@ const MAX_FPS = 44;
 const MIN_FRAME_INTERVAL_MS = 1000 / MAX_FPS; // ~22.7ms
 const WS_PORT = 3001;
 
-const UNIVERSE_1_LEDS = 170;
-const UNIVERSE_2_LEDS = LED_COUNT - UNIVERSE_1_LEDS; // 54
-const UNIVERSE_1_CHANNELS = UNIVERSE_1_LEDS * BYTES_PER_LED; // 510
-const UNIVERSE_2_CHANNELS = UNIVERSE_2_LEDS * BYTES_PER_LED; // 162
-
 export default function sacnBridgePlugin(): Plugin {
   let wss: WebSocketServer | null = null;
-  let sender1: Sender | null = null;
-  let sender2: Sender | null = null;
+  let relay: ChildProcess | null = null;
 
   // Frame throttle state
   let lastFrameTime = 0;
@@ -56,8 +51,8 @@ export default function sacnBridgePlugin(): Plugin {
     }
   }
 
-  async function sendFrame(data: Buffer | Uint8Array): Promise<void> {
-    if (!sender1 || !sender2) return;
+  function sendFrame(data: Buffer | Uint8Array): void {
+    if (!relay || !relay.stdin || relay.killed) return;
 
     const now = performance.now();
     if (now - lastFrameTime < MIN_FRAME_INTERVAL_MS) {
@@ -65,27 +60,16 @@ export default function sacnBridgePlugin(): Plugin {
     }
     lastFrameTime = now;
 
-    // Build universe 1 payload: channels 1..510
-    const payload1: Record<number, number> = {};
-    for (let i = 0; i < UNIVERSE_1_CHANNELS; i++) {
-      payload1[i + 1] = data[i]; // sACN channels are 1-indexed
-    }
-
-    // Build universe 2 payload: channels 1..162
-    const payload2: Record<number, number> = {};
-    for (let i = 0; i < UNIVERSE_2_CHANNELS; i++) {
-      payload2[i + 1] = data[UNIVERSE_1_CHANNELS + i];
-    }
-
+    // Write length-prefixed frame to Python relay stdin
+    const header = Buffer.alloc(2);
+    header.writeUInt16BE(data.length);
     try {
-      await Promise.all([
-        sender1.send({ payload: payload1 }),
-        sender2.send({ payload: payload2 }),
-      ]);
+      relay.stdin.write(header);
+      relay.stdin.write(data);
       frameCount++;
       logFps();
     } catch (err) {
-      console.error(`${PREFIX} sACN send error:`, err);
+      console.error(`${PREFIX} relay write error:`, err);
     }
   }
 
@@ -96,14 +80,10 @@ export default function sacnBridgePlugin(): Plugin {
     configureServer(server) {
       const cubeIp = process.env['VITE_CUBE_IP'] || '192.168.1.160';
 
-      // ── WLED REST Proxy ──────────────────────────────────────────────────────
-      // Routes /api/wled-proxy?target=IP&path=/json/state to the cube's HTTP API.
-      // Bypasses Chrome Private Network Access (PNA) blocks by keeping requests
-      // same-origin (localhost → localhost proxy → cube IP).
+      // ── WLED REST Proxy ──────────────────────────────────────────────────
       server.middlewares.use('/api/wled-proxy', (req, res) => {
         try {
           const rawUrl = req.url ?? '/';
-          // req.url on a mounted path includes the query string but not the mount path
           const parsedUrl = new URL(`http://localhost${rawUrl}`);
           const target = parsedUrl.searchParams.get('target');
           const path = parsedUrl.searchParams.get('path');
@@ -146,31 +126,23 @@ export default function sacnBridgePlugin(): Plugin {
           res.end(JSON.stringify({ error: `Proxy error: ${String(err)}` }));
         }
       });
-      // ────────────────────────────────────────────────────────────────────────
+      // ────────────────────────────────────────────────────────────────────
 
-      // Create sACN senders
-      sender1 = new Sender({
-        universe: 1,
-        reuseAddr: true,
-        useUnicastDestination: cubeIp,
-        defaultPacketOptions: {
-          useRawDmxValues: true,
-          sourceName: 'HyperCube Bridge',
-          priority: 100,
-        },
-        minRefreshRate: 0,
+      // Spawn Python sACN relay subprocess
+      const relayScript = resolve(dirname(fileURLToPath(import.meta.url)), 'sacn-relay.py');
+      relay = spawn('python3', [relayScript, cubeIp], {
+        stdio: ['pipe', 'inherit', 'inherit'],
       });
 
-      sender2 = new Sender({
-        universe: 2,
-        reuseAddr: true,
-        useUnicastDestination: cubeIp,
-        defaultPacketOptions: {
-          useRawDmxValues: true,
-          sourceName: 'HyperCube Bridge',
-          priority: 100,
-        },
-        minRefreshRate: 0,
+      relay.on('error', (err) => {
+        console.error(`${PREFIX} Failed to start Python sACN relay:`, err.message);
+      });
+
+      relay.on('exit', (code) => {
+        if (code !== null && code !== 0) {
+          console.error(`${PREFIX} Python sACN relay exited with code ${code}`);
+        }
+        relay = null;
       });
 
       // Create WebSocket server
@@ -223,15 +195,12 @@ export default function sacnBridgePlugin(): Plugin {
       });
 
       // Log startup banner
-      const addr = server.httpServer?.address();
-      const port = addr && typeof addr === 'object' ? addr.port : 5173;
       console.log('');
       console.log(`  ${PREFIX} Embedded sACN/E1.31 Bridge started`);
       console.log(`  ${PREFIX} WebSocket : ws://localhost:${WS_PORT}`);
       console.log(`  ${PREFIX} Cube IP   : ${cubeIp}`);
-      console.log(`  ${PREFIX} LEDs      : ${LED_COUNT} (Universe 1: 510ch + Universe 2: 162ch)`);
+      console.log(`  ${PREFIX} LEDs      : ${LED_COUNT} (via Python sACN relay)`);
       console.log(`  ${PREFIX} Max FPS   : ${MAX_FPS}`);
-      console.log(`  ${PREFIX} WLED Proxy : http://localhost:${port}/api/wled-proxy?target=${cubeIp}&path=/json/state`);
       console.log('');
 
       // Clean shutdown when Vite stops
@@ -241,13 +210,9 @@ export default function sacnBridgePlugin(): Plugin {
           wss.close();
           wss = null;
         }
-        if (sender1) {
-          sender1.close();
-          sender1 = null;
-        }
-        if (sender2) {
-          sender2.close();
-          sender2 = null;
+        if (relay && !relay.killed) {
+          relay.kill();
+          relay = null;
         }
       });
     },
