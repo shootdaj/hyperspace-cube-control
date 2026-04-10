@@ -74,18 +74,14 @@ export function ControlPanel() {
       // Entering paint tab — enable paint mode automatically
       paintStore.getState().setIsPaintMode(true);
 
-      // Kill firmware effect for direct LED control (same as old toggle did)
-      let sacnActive = false;
-      try { sacnActive = SACNController.getInstance().isActive(); } catch { /* not init */ }
-      if (!sacnActive) {
-        const ip = connectionStore.getState().ip;
-        if (ip) {
-          fetch(`http://${ip}/json/state`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ on: true, bri: 255, seg: [{ fx: 0, sx: 0, ix: 0 }] }),
-          }).catch(() => {});
-        }
+      // Always kill firmware effect when entering paint — whether sACN is active or not
+      const ip = connectionStore.getState().ip;
+      if (ip) {
+        fetch(`http://${ip}/json/state`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ on: true, bri: 255, seg: [{ fx: 0, sx: 0, ix: 0 }] }),
+        }).catch(() => {});
       }
     } else if (wasPaint && !isPaint) {
       // Leaving paint tab — disable paint mode
