@@ -1,4 +1,5 @@
 import { WLEDWebSocketService } from '@/core/wled/WLEDWebSocketService';
+import { DEFAULT_LED_COUNT, DEFAULT_FRAME_SIZE } from '@/core/constants';
 
 /**
  * Groups sorted indices into contiguous ranges.
@@ -34,7 +35,7 @@ function buildRanges(sorted: number[]): { start: number; end: number }[] {
  * Use sendAll() for bulk operations (clear/fill) that bypass diffing.
  */
 export class WLEDPaintOutput {
-  private lastSent = new Uint8Array(480 * 3);
+  private lastSent = new Uint8Array(DEFAULT_FRAME_SIZE);
   private pendingBuffer: Uint8Array | null = null;
   private throttleTimer: ReturnType<typeof setTimeout> | null = null;
   private readonly THROTTLE_MS = 33; // ~30fps
@@ -63,7 +64,7 @@ export class WLEDPaintOutput {
 
     // Find changed LED indices
     const changed: number[] = [];
-    for (let i = 0; i < 480; i++) {
+    for (let i = 0; i < DEFAULT_LED_COUNT; i++) {
       const off = i * 3;
       if (
         buf[off] !== this.lastSent[off] ||
@@ -95,29 +96,22 @@ export class WLEDPaintOutput {
   }
 
   /**
-   * Send full 480-LED frame to WLED, bypassing diff.
+   * Send full LED frame to WLED, bypassing diff.
    * Used for clear/fill operations.
-   * Sends in 2 chunks: 256 + 224 LEDs (WLED limit).
+   * 224 LEDs fits in a single chunk (under WLED's 256 limit).
    */
   sendAll(buffer: Uint8Array): void {
     const ws = WLEDWebSocketService.getInstance();
 
-    // Chunk 1: LEDs 0-255
-    const chunk1: number[] = [0]; // start index
-    for (let i = 0; i < 256; i++) {
-      chunk1.push(buffer[i * 3], buffer[i * 3 + 1], buffer[i * 3 + 2]);
+    // 224 LEDs fits in a single chunk
+    const chunk: number[] = [0]; // start index
+    for (let i = 0; i < DEFAULT_LED_COUNT; i++) {
+      chunk.push(buffer[i * 3], buffer[i * 3 + 1], buffer[i * 3 + 2]);
     }
-    ws.send({ seg: [{ id: 0, i: chunk1 }] });
-
-    // Chunk 2: LEDs 256-479
-    const chunk2: number[] = [256]; // start index
-    for (let i = 256; i < 480; i++) {
-      chunk2.push(buffer[i * 3], buffer[i * 3 + 1], buffer[i * 3 + 2]);
-    }
-    ws.send({ seg: [{ id: 0, i: chunk2 }] });
+    ws.send({ seg: [{ id: 0, i: chunk }] });
 
     // Update last-sent state
-    this.lastSent.set(buffer);
+    this.lastSent.set(buffer.subarray(0, DEFAULT_FRAME_SIZE));
   }
 
   /**

@@ -9,6 +9,7 @@ let capturedSubscriber: ((msg: WLEDMessage) => void) | null = null;
 vi.mock('../WLEDWebSocketService', () => ({
   WLEDWebSocketService: {
     getInstance: () => ({
+      isWsAvailable: () => true,
       subscribe: vi.fn((fn: (msg: WLEDMessage) => void) => {
         capturedSubscriber = fn;
         return () => { capturedSubscriber = null; };

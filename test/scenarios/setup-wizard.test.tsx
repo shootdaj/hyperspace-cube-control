@@ -39,7 +39,8 @@ describe('Setup Wizard Scenarios', () => {
     await waitFor(() => {
       expect(screen.getByText('Connected!')).toBeInTheDocument();
     });
-    expect(screen.getByText('HyperCube')).toBeInTheDocument();
+    // The device name shows in the wizard's info section
+    expect(screen.getByText('HyperCube', { selector: '.text-foreground.font-medium' })).toBeInTheDocument();
     expect(screen.getByText('480 LEDs')).toBeInTheDocument();
 
     // Advance to tour
@@ -79,14 +80,17 @@ describe('Setup Wizard Scenarios', () => {
   });
 
   it('TestSetupWizard_ReturningUser_NoWizard', () => {
+    // App requires both wizardCompleted AND a saved IP; without IP it re-shows wizard
     localStorage.setItem('wizardCompleted', 'true');
+    localStorage.setItem('hypercube-device-ip', '192.168.1.100');
+    connectionStore.setState({ ip: '192.168.1.100', status: 'disconnected' });
     render(<App />);
 
     // Wizard should NOT appear
     expect(screen.queryByText('Connect to HyperCube')).not.toBeInTheDocument();
 
-    // Main UI should be visible
-    expect(screen.getByText('HyperCube Control')).toBeInTheDocument();
+    // Main UI should be visible — header shows "HyperCube"
+    expect(screen.getByText('HyperCube')).toBeInTheDocument();
     // CubeScene renders a canvas element when wizard is complete
     expect(document.querySelector('canvas')).toBeInTheDocument();
   });

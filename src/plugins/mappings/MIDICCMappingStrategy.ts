@@ -1,7 +1,8 @@
 import type { FrameData, MappingStrategy } from '@/core/pipeline/types';
+import { EDGE_COUNT, EDGE_LED_COUNTS, getEdgeStartIndex } from '@/core/constants';
 
 /**
- * MIDICCMappingStrategy — converts MIDI CC state to a 480-LED color array.
+ * MIDICCMappingStrategy — converts MIDI CC state to a 224-LED color array.
  *
  * This is a simple visualization: the first mapped CC drives brightness
  * across all LEDs. The FrameData contains a midiCC Map from the MIDIPlugin.
@@ -32,21 +33,21 @@ export class MIDICCMappingStrategy implements MappingStrategy {
 
     // Use different CCs to drive different edge colors
     const ccEntries = Array.from(frame.midiCC.entries());
-    const numEdges = 12;
-    const ledsPerEdge = 40; // 480 / 12
 
-    for (let edge = 0; edge < numEdges; edge++) {
+    for (let edge = 0; edge < EDGE_COUNT; edge++) {
       // Assign CCs round-robin to edges
       const ccEntry = ccEntries[edge % ccEntries.length];
       const ccValue = ccEntry ? ccEntry[1] : 0;
       const edgeBrightness = Math.round((ccValue / 127) * 255);
 
       // Hue based on edge index for visual variety
-      const hue = (edge / numEdges) * 360;
+      const hue = (edge / EDGE_COUNT) * 360;
       const [r, g, b] = hslToRgb(hue, 1.0, 0.5);
 
-      for (let led = 0; led < ledsPerEdge; led++) {
-        const idx = (edge * ledsPerEdge + led) * 3;
+      const ledsOnEdge = EDGE_LED_COUNTS[edge];
+      const edgeStart = getEdgeStartIndex(edge);
+      for (let led = 0; led < ledsOnEdge; led++) {
+        const idx = (edgeStart + led) * 3;
         const scale = edgeBrightness / 255;
         result[idx] = Math.round(r * scale);
         result[idx + 1] = Math.round(g * scale);

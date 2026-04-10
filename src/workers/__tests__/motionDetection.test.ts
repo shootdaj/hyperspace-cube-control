@@ -115,11 +115,11 @@ describe('motionDetection', () => {
   });
 
   describe('mapMotionToLeds', () => {
-    it('TestMapMotionToLeds_Returns480x3Bytes', () => {
+    it('TestMapMotionToLeds_Returns224x3Bytes', () => {
       const motionMap = new Uint8Array(100);
       const result = mapMotionToLeds(motionMap, 0.5, 10, 10);
       expect(result).toBeInstanceOf(Uint8Array);
-      expect(result.length).toBe(480 * 3);
+      expect(result.length).toBe(224 * 3);
     });
 
     it('TestMapMotionToLeds_NoMotionAllBlack', () => {
@@ -155,15 +155,19 @@ describe('motionDetection', () => {
       const result = mapMotionToLeds(motionMap, 0.08, width, height);
 
       // First edge (row 0) should have non-zero LEDs
+      // Edge 0 has 19 LEDs starting at index 0
       let firstEdgeHasColor = false;
-      for (let i = 0; i < 40 * 3; i++) {
+      for (let i = 0; i < 19 * 3; i++) {
         if (result[i] > 0) { firstEdgeHasColor = true; break; }
       }
       expect(firstEdgeHasColor).toBe(true);
 
       // Last edge (row 11) should be mostly black
+      // Edge 11 starts at getEdgeStartIndex(11) and has 18 LEDs
+      // Use a simpler check: sum the last 18 LEDs' bytes
+      const edge11Start = result.length - 18 * 3; // last edge
       let lastEdgeSum = 0;
-      for (let i = 11 * 40 * 3; i < 12 * 40 * 3; i++) {
+      for (let i = edge11Start; i < result.length; i++) {
         lastEdgeSum += result[i];
       }
       expect(lastEdgeSum).toBe(0);

@@ -1,6 +1,7 @@
 import type { InputPlugin, FrameData, PluginContext } from '@/core/pipeline/types';
 import type { WorkerRequest, WorkerResponse } from '@/workers/videoWorkerTypes';
 import { cameraStore } from '@/stores/cameraStore';
+import { DEFAULT_FRAME_SIZE } from '@/core/constants';
 
 /**
  * CameraPlugin — InputPlugin for webcam motion-reactive LED output.
@@ -24,7 +25,7 @@ export class CameraPlugin implements InputPlugin {
   private stream: MediaStream | null = null;
   private canvas: HTMLCanvasElement | null = null;
   private ctx: CanvasRenderingContext2D | null = null;
-  private latestLeds: Uint8Array = new Uint8Array(480 * 3);
+  private latestLeds: Uint8Array = new Uint8Array(DEFAULT_FRAME_SIZE);
   private latestMotionLevel = 0;
   private pendingFrame = false;
   private sensitivity = 128;
@@ -39,6 +40,9 @@ export class CameraPlugin implements InputPlugin {
   }
 
   async initialize(_ctx: PluginContext): Promise<void> {
+    // Guard: skip if already initialized (idempotent)
+    if (this.worker) return;
+
     this.worker = this.injectedWorker ?? new Worker(
       new URL('@/workers/VideoProcessorWorker.ts', import.meta.url),
       { type: 'module' },
@@ -124,7 +128,7 @@ export class CameraPlugin implements InputPlugin {
       this.video.srcObject = null;
       this.video = null;
     }
-    this.latestLeds = new Uint8Array(480 * 3);
+    this.latestLeds = new Uint8Array(DEFAULT_FRAME_SIZE);
     this.latestMotionLevel = 0;
     cameraStore.getState().setIsActive(false);
     cameraStore.getState().setMotionLevel(0);

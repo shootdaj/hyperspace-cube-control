@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { WLEDPaintOutput } from '../WLEDPaintOutput';
+import { DEFAULT_LED_COUNT, DEFAULT_FRAME_SIZE } from '@/core/constants';
 
 // Stable mock send function shared across all getInstance() calls
 const mockSend = vi.fn();
@@ -32,14 +33,14 @@ describe('WLEDPaintOutput', () => {
 
   describe('sendPaint — diff-based sending', () => {
     it('TestWLEDPaintOutput_NoChanges_NoSend', () => {
-      const buffer = new Uint8Array(480 * 3); // all zeros = same as initial lastSent
+      const buffer = new Uint8Array(DEFAULT_FRAME_SIZE); // all zeros = same as initial lastSent
       output.sendPaint(buffer);
       const send = getMockSend();
       expect(send).not.toHaveBeenCalled();
     });
 
     it('TestWLEDPaintOutput_SingleLedChange_SendsMinimalPayload', () => {
-      const buffer = new Uint8Array(480 * 3);
+      const buffer = new Uint8Array(DEFAULT_FRAME_SIZE);
       buffer[0] = 255; // LED 0, R
       buffer[1] = 128; // LED 0, G
       buffer[2] = 64;  // LED 0, B
@@ -57,7 +58,7 @@ describe('WLEDPaintOutput', () => {
     });
 
     it('TestWLEDPaintOutput_ContiguousRange_SingleSend', () => {
-      const buffer = new Uint8Array(480 * 3);
+      const buffer = new Uint8Array(DEFAULT_FRAME_SIZE);
       // Set LEDs 10-14 (contiguous range of 5)
       for (let i = 10; i < 15; i++) {
         buffer[i * 3] = 100;
@@ -76,7 +77,7 @@ describe('WLEDPaintOutput', () => {
     });
 
     it('TestWLEDPaintOutput_NonContiguousChanges_MultipleSends', () => {
-      const buffer = new Uint8Array(480 * 3);
+      const buffer = new Uint8Array(DEFAULT_FRAME_SIZE);
       // LED 0
       buffer[0] = 255;
       // LED 100 (far from LED 0)
@@ -90,7 +91,7 @@ describe('WLEDPaintOutput', () => {
 
     it('TestWLEDPaintOutput_SecondSend_OnlyDiff', () => {
       // First send: LED 0 = red
-      const buffer1 = new Uint8Array(480 * 3);
+      const buffer1 = new Uint8Array(DEFAULT_FRAME_SIZE);
       buffer1[0] = 255;
       output.sendPaint(buffer1);
 
@@ -99,7 +100,7 @@ describe('WLEDPaintOutput', () => {
       vi.advanceTimersByTime(50);
 
       // Second send: LED 0 still red, LED 1 = green
-      const buffer2 = new Uint8Array(480 * 3);
+      const buffer2 = new Uint8Array(DEFAULT_FRAME_SIZE);
       buffer2[0] = 255; // unchanged
       buffer2[3] = 255; // LED 1, G
       output.sendPaint(buffer2);
@@ -114,13 +115,13 @@ describe('WLEDPaintOutput', () => {
 
   describe('throttling', () => {
     it('TestWLEDPaintOutput_RapidCalls_ThrottledTo30fps', () => {
-      const buffer1 = new Uint8Array(480 * 3);
+      const buffer1 = new Uint8Array(DEFAULT_FRAME_SIZE);
       buffer1[0] = 100;
 
-      const buffer2 = new Uint8Array(480 * 3);
+      const buffer2 = new Uint8Array(DEFAULT_FRAME_SIZE);
       buffer2[0] = 200;
 
-      const buffer3 = new Uint8Array(480 * 3);
+      const buffer3 = new Uint8Array(DEFAULT_FRAME_SIZE);
       buffer3[0] = 255;
 
       // First call goes through immediately
@@ -145,7 +146,7 @@ describe('WLEDPaintOutput', () => {
   describe('reset', () => {
     it('TestWLEDPaintOutput_Reset_ForcesFullSendOnNext', () => {
       // Send initial state
-      const buffer = new Uint8Array(480 * 3);
+      const buffer = new Uint8Array(DEFAULT_FRAME_SIZE);
       buffer[0] = 255;
       output.sendPaint(buffer);
 
@@ -164,9 +165,8 @@ describe('WLEDPaintOutput', () => {
 
   describe('sendAll', () => {
     it('TestWLEDPaintOutput_SendAll_SendsFullFrame', () => {
-      const buffer = new Uint8Array(480 * 3);
-      // Set every LED to some color
-      for (let i = 0; i < 480; i++) {
+      const buffer = new Uint8Array(DEFAULT_FRAME_SIZE);
+      for (let i = 0; i < DEFAULT_LED_COUNT; i++) {
         buffer[i * 3] = 100;
         buffer[i * 3 + 1] = 150;
         buffer[i * 3 + 2] = 200;
@@ -174,35 +174,24 @@ describe('WLEDPaintOutput', () => {
 
       output.sendAll(buffer);
       const send = getMockSend();
-      // 480 LEDs in 2 chunks: 256 + 224
-      expect(send).toHaveBeenCalledTimes(2);
+      // 224 LEDs fits in 1 chunk (under 256 limit)
+      expect(send).toHaveBeenCalledTimes(1);
     });
 
-    it('TestWLEDPaintOutput_SendAll_FirstChunk256Leds', () => {
-      const buffer = new Uint8Array(480 * 3);
+    it('TestWLEDPaintOutput_SendAll_SingleChunk224Leds', () => {
+      const buffer = new Uint8Array(DEFAULT_FRAME_SIZE);
       buffer[0] = 42;
       output.sendAll(buffer);
       const send = getMockSend();
 
-      const chunk1 = send.mock.calls[0][0];
-      expect(chunk1.seg[0].i[0]).toBe(0); // start index
-      // 256 LEDs * 3 channels + 1 start index
-      expect(chunk1.seg[0].i.length).toBe(1 + 256 * 3);
-    });
-
-    it('TestWLEDPaintOutput_SendAll_SecondChunkStartsAt256', () => {
-      const buffer = new Uint8Array(480 * 3);
-      output.sendAll(buffer);
-      const send = getMockSend();
-
-      const chunk2 = send.mock.calls[1][0];
-      expect(chunk2.seg[0].i[0]).toBe(256); // start index for second chunk
+      const chunk = send.mock.calls[0][0];
+      expect(chunk.seg[0].i[0]).toBe(0); // start index
       // 224 LEDs * 3 channels + 1 start index
-      expect(chunk2.seg[0].i.length).toBe(1 + 224 * 3);
+      expect(chunk.seg[0].i.length).toBe(1 + DEFAULT_LED_COUNT * 3);
     });
 
     it('TestWLEDPaintOutput_SendAll_UpdatesLastSent', () => {
-      const buffer = new Uint8Array(480 * 3);
+      const buffer = new Uint8Array(DEFAULT_FRAME_SIZE);
       buffer[0] = 255;
       output.sendAll(buffer);
 
@@ -218,12 +207,12 @@ describe('WLEDPaintOutput', () => {
 
   describe('destroy', () => {
     it('TestWLEDPaintOutput_Destroy_ClearsThrottle', () => {
-      const buffer = new Uint8Array(480 * 3);
+      const buffer = new Uint8Array(DEFAULT_FRAME_SIZE);
       buffer[0] = 255;
       output.sendPaint(buffer);
 
       // Schedule a pending send
-      const buffer2 = new Uint8Array(480 * 3);
+      const buffer2 = new Uint8Array(DEFAULT_FRAME_SIZE);
       buffer2[0] = 128;
       output.sendPaint(buffer2);
 

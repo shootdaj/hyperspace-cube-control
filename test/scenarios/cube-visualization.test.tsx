@@ -19,8 +19,10 @@ afterAll(() => server.close());
 
 describe('Cube Visualization Scenarios', () => {
   it('TestCubeVisualization_Renders_AfterWizardComplete', () => {
-    // Simulate wizard already completed
+    // Simulate wizard already completed — App also requires a saved IP
     localStorage.setItem('wizardCompleted', 'true');
+    localStorage.setItem('hypercube-device-ip', '192.168.1.100');
+    connectionStore.setState({ ip: '192.168.1.100', status: 'disconnected' });
 
     const { container } = render(<App />);
 

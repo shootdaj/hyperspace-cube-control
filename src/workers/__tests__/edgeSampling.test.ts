@@ -82,11 +82,11 @@ describe('edgeSampling', () => {
   });
 
   describe('sampleEdges', () => {
-    it('TestSampleEdges_Returns480x3Bytes', () => {
+    it('TestSampleEdges_Returns224x3Bytes', () => {
       const data = createTestImageData(320, 240);
       const result = sampleEdges(data, 320, 240);
       expect(result).toBeInstanceOf(Uint8Array);
-      expect(result.length).toBe(480 * 3);
+      expect(result.length).toBe(224 * 3);
     });
 
     it('TestSampleEdges_SolidImageProducesUniformColor', () => {

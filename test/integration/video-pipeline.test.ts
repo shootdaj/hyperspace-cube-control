@@ -8,6 +8,7 @@ import { videoStore } from '@/stores/videoStore';
 import { cameraStore } from '@/stores/cameraStore';
 import { runPipelineTick, FRAME_INTERVAL_MS, type PipelineRefs } from '@/core/pipeline/PipelineEngine';
 import { pluginRegistry } from '@/core/pipeline/PluginRegistry';
+import { DEFAULT_LED_COUNT, DEFAULT_FRAME_SIZE } from '@/core/constants';
 import { registerVideoPlugins } from '@/plugins/inputs/registerVideoPlugins';
 import type { InputPlugin, MappingStrategy, OutputPlugin } from '@/core/pipeline/types';
 import type { MutableRefObject } from 'react';
@@ -64,10 +65,10 @@ describe('Video Pipeline Integration', () => {
   it('TestVideoPipeline_VideoPluginWithEdgeSamplingProducesOutput', async () => {
     const mockWorker = new MockWorker();
     const videoPlugin = new VideoPlugin(mockWorker as unknown as Worker);
-    await videoPlugin.initialize({ ledCount: 480, frameRate: 30 });
+    await videoPlugin.initialize({ ledCount: DEFAULT_LED_COUNT, frameRate: 30 });
 
     // Simulate loaded video with pre-computed LED data
-    const testLeds = new Uint8Array(480 * 3);
+    const testLeds = new Uint8Array(DEFAULT_FRAME_SIZE);
     testLeds[0] = 255;
     testLeds[1] = 128;
     testLeds[2] = 64;
@@ -99,7 +100,7 @@ describe('Video Pipeline Integration', () => {
   it('TestVideoPipeline_StrategySwapAtRuntime', async () => {
     const mockWorker = new MockWorker();
     const videoPlugin = new VideoPlugin(mockWorker as unknown as Worker);
-    await videoPlugin.initialize({ ledCount: 480, frameRate: 30 });
+    await videoPlugin.initialize({ ledCount: DEFAULT_LED_COUNT, frameRate: 30 });
 
     // Start with edge-sampling
     expect(videoPlugin.getStrategy()).toBe('edge-sampling');
@@ -119,9 +120,9 @@ describe('Video Pipeline Integration', () => {
   it('TestVideoPipeline_StrategySwapDoesNotRestartPipeline', async () => {
     const mockWorker = new MockWorker();
     const videoPlugin = new VideoPlugin(mockWorker as unknown as Worker);
-    await videoPlugin.initialize({ ledCount: 480, frameRate: 30 });
+    await videoPlugin.initialize({ ledCount: DEFAULT_LED_COUNT, frameRate: 30 });
 
-    const testLeds = new Uint8Array(480 * 3);
+    const testLeds = new Uint8Array(DEFAULT_FRAME_SIZE);
     testLeds.fill(100);
     (videoPlugin as unknown as { latestLeds: Uint8Array }).latestLeds = testLeds;
     (videoPlugin as unknown as { isImage: boolean }).isImage = true;
@@ -158,9 +159,9 @@ describe('Video Pipeline Integration', () => {
     const manualPlugin = new MockInputPlugin();
     const mockWorker = new MockWorker();
     const videoPlugin = new VideoPlugin(mockWorker as unknown as Worker);
-    await videoPlugin.initialize({ ledCount: 480, frameRate: 30 });
+    await videoPlugin.initialize({ ledCount: DEFAULT_LED_COUNT, frameRate: 30 });
 
-    const testLeds = new Uint8Array(480 * 3);
+    const testLeds = new Uint8Array(DEFAULT_FRAME_SIZE);
     testLeds.fill(77);
     (videoPlugin as unknown as { latestLeds: Uint8Array }).latestLeds = testLeds;
     (videoPlugin as unknown as { isImage: boolean }).isImage = true;
@@ -194,7 +195,7 @@ describe('Video Pipeline Integration', () => {
   it('TestVideoPipeline_CameraPluginTickReturnsNullBeforeStart', async () => {
     const mockWorker = new MockWorker();
     const cameraPlugin = new CameraPlugin(mockWorker as unknown as Worker);
-    await cameraPlugin.initialize({ ledCount: 480, frameRate: 30 });
+    await cameraPlugin.initialize({ ledCount: DEFAULT_LED_COUNT, frameRate: 30 });
 
     const frame = cameraPlugin.tick(16);
     expect(frame).toBeNull();

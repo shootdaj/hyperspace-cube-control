@@ -8,9 +8,9 @@ describe('ledStateProxy', () => {
     ledStateProxy.lastUpdated = 0;
   });
 
-  it('TestLedStateProxy_ColorsIsUint8Array_WithLength1440', () => {
+  it('TestLedStateProxy_ColorsIsUint8Array_WithLength672', () => {
     expect(ledStateProxy.colors).toBeInstanceOf(Uint8Array);
-    expect(ledStateProxy.colors.length).toBe(1440); // 480 LEDs x 3 channels
+    expect(ledStateProxy.colors.length).toBe(672); // 224 LEDs x 3 channels
   });
 
   it('TestLedStateProxy_InitialLastUpdated_IsZero', () => {
@@ -27,10 +27,10 @@ describe('ledStateProxy', () => {
   });
 
   it('TestLedStateProxy_BulkSet_UpdatesBuffer', () => {
-    const newColors = new Uint8Array(1440).fill(200);
+    const newColors = new Uint8Array(672).fill(200);
     ledStateProxy.colors.set(newColors);
     expect(ledStateProxy.colors[0]).toBe(200);
-    expect(ledStateProxy.colors[1439]).toBe(200);
+    expect(ledStateProxy.colors[671]).toBe(200);
   });
 
   it('TestLedStateProxy_LastUpdated_IsWritable', () => {

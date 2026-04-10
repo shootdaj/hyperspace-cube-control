@@ -1,18 +1,19 @@
 import { describe, it, expect } from 'vitest';
 import {
-  LEDS_PER_EDGE,
   EDGE_COUNT,
+  LED_COUNT,
   FACE_EDGES,
   getEdgeIndex,
   getEdgeLedIndices,
   getEdgeFaces,
   getFaceEdgeIndices,
 } from '../cubeTopology';
+import { EDGE_LED_COUNTS, getEdgeStartIndex } from '@/core/constants';
 
 describe('cubeTopology', () => {
   describe('constants', () => {
     it('TestCubeTopology_Constants_CorrectValues', () => {
-      expect(LEDS_PER_EDGE).toBe(40);
+      expect(LED_COUNT).toBe(224);
       expect(EDGE_COUNT).toBe(12);
     });
 
@@ -43,6 +44,14 @@ describe('cubeTopology', () => {
         expect(edgeFaceCount[e]).toBe(2);
       }
     });
+
+    it('TestCubeTopology_EdgeLedCounts_SumTo224', () => {
+      let total = 0;
+      for (const count of EDGE_LED_COUNTS) {
+        total += count;
+      }
+      expect(total).toBe(224);
+    });
   });
 
   describe('getEdgeIndex', () => {
@@ -51,20 +60,22 @@ describe('cubeTopology', () => {
     });
 
     it('TestCubeTopology_GetEdgeIndex_LastLedOnFirstEdge', () => {
-      expect(getEdgeIndex(39)).toBe(0);
+      // Edge 0 has 19 LEDs (indices 0-18)
+      expect(getEdgeIndex(18)).toBe(0);
     });
 
     it('TestCubeTopology_GetEdgeIndex_FirstLedOnSecondEdge', () => {
-      expect(getEdgeIndex(40)).toBe(1);
+      // Edge 1 starts at index 19
+      expect(getEdgeIndex(19)).toBe(1);
     });
 
     it('TestCubeTopology_GetEdgeIndex_LastLed', () => {
-      expect(getEdgeIndex(479)).toBe(11);
+      expect(getEdgeIndex(223)).toBe(11);
     });
 
     it('TestCubeTopology_GetEdgeIndex_MiddleLed', () => {
-      // LED 200 = edge 5 (200/40 = 5)
-      expect(getEdgeIndex(200)).toBe(5);
+      // Edge 5 starts at 5*19=95, has 19 LEDs (indices 95-113)
+      expect(getEdgeIndex(100)).toBe(5);
     });
 
     it('TestCubeTopology_GetEdgeIndex_NegativeIndex_Throws', () => {
@@ -72,30 +83,32 @@ describe('cubeTopology', () => {
     });
 
     it('TestCubeTopology_GetEdgeIndex_OutOfRange_Throws', () => {
-      expect(() => getEdgeIndex(480)).toThrow();
+      expect(() => getEdgeIndex(224)).toThrow();
     });
   });
 
   describe('getEdgeLedIndices', () => {
     it('TestCubeTopology_GetEdgeLedIndices_Edge0', () => {
       const indices = getEdgeLedIndices(0);
-      expect(indices).toHaveLength(40);
+      expect(indices).toHaveLength(19); // Edge 0 has 19 LEDs
       expect(indices[0]).toBe(0);
-      expect(indices[39]).toBe(39);
+      expect(indices[18]).toBe(18);
     });
 
     it('TestCubeTopology_GetEdgeLedIndices_Edge11', () => {
       const indices = getEdgeLedIndices(11);
-      expect(indices).toHaveLength(40);
-      expect(indices[0]).toBe(440);
-      expect(indices[39]).toBe(479);
+      expect(indices).toHaveLength(18); // Edge 11 (vertical) has 18 LEDs
+      const start = getEdgeStartIndex(11);
+      expect(indices[0]).toBe(start);
+      expect(indices[17]).toBe(start + 17);
     });
 
     it('TestCubeTopology_GetEdgeLedIndices_Edge5', () => {
       const indices = getEdgeLedIndices(5);
-      expect(indices).toHaveLength(40);
-      expect(indices[0]).toBe(200);
-      expect(indices[39]).toBe(239);
+      expect(indices).toHaveLength(19); // Edge 5 (top face) has 19 LEDs
+      const start = getEdgeStartIndex(5);
+      expect(indices[0]).toBe(start);
+      expect(indices[18]).toBe(start + 18);
     });
 
     it('TestCubeTopology_GetEdgeLedIndices_NegativeEdge_Throws', () => {
@@ -109,7 +122,6 @@ describe('cubeTopology', () => {
 
   describe('getEdgeFaces', () => {
     it('TestCubeTopology_GetEdgeFaces_Edge0_BottomAndFront', () => {
-      // Edge 0 is in bottom face (index 0) and front face (index 2)
       const faces = getEdgeFaces(0);
       expect(faces).toHaveLength(2);
       expect(faces).toContain(0); // bottom
@@ -117,7 +129,6 @@ describe('cubeTopology', () => {
     });
 
     it('TestCubeTopology_GetEdgeFaces_Edge4_TopAndFront', () => {
-      // Edge 4 is in top face (index 1) and front face (index 2)
       const faces = getEdgeFaces(4);
       expect(faces).toHaveLength(2);
       expect(faces).toContain(1); // top
@@ -125,7 +136,6 @@ describe('cubeTopology', () => {
     });
 
     it('TestCubeTopology_GetEdgeFaces_Edge9_FrontAndRight', () => {
-      // Edge 9 is in front face (index 2) and right face (index 3)
       const faces = getEdgeFaces(9);
       expect(faces).toHaveLength(2);
       expect(faces).toContain(2); // front
@@ -148,41 +158,44 @@ describe('cubeTopology', () => {
   });
 
   describe('getFaceEdgeIndices', () => {
-    it('TestCubeTopology_GetFaceEdgeIndices_BottomFace_160Leds', () => {
-      // Bottom face = edges 0,1,2,3 = 160 LEDs
+    it('TestCubeTopology_GetFaceEdgeIndices_BottomFace', () => {
+      // Bottom face = edges 0,1,2,3 (19 LEDs each = 76 LEDs)
       const indices = getFaceEdgeIndices(0);
-      expect(indices).toHaveLength(160);
+      expect(indices).toHaveLength(76);
     });
 
     it('TestCubeTopology_GetFaceEdgeIndices_BottomFace_CorrectRange', () => {
       const indices = getFaceEdgeIndices(0);
-      // Should contain LEDs 0-159 (edges 0-3, each 40 LEDs)
-      expect(indices).toContain(0);   // edge 0 start
-      expect(indices).toContain(39);  // edge 0 end
-      expect(indices).toContain(40);  // edge 1 start
-      expect(indices).toContain(79);  // edge 1 end
-      expect(indices).toContain(80);  // edge 2 start
-      expect(indices).toContain(119); // edge 2 end
-      expect(indices).toContain(120); // edge 3 start
-      expect(indices).toContain(159); // edge 3 end
+      // Should contain LEDs from edges 0-3
+      expect(indices).toContain(0);  // edge 0 start
+      expect(indices).toContain(18); // edge 0 end
+      expect(indices).toContain(19); // edge 1 start
+      expect(indices).toContain(37); // edge 1 end
+      expect(indices).toContain(38); // edge 2 start
+      expect(indices).toContain(56); // edge 2 end
+      expect(indices).toContain(57); // edge 3 start
+      expect(indices).toContain(75); // edge 3 end
     });
 
-    it('TestCubeTopology_GetFaceEdgeIndices_TopFace_160Leds', () => {
-      // Top face = edges 4,5,6,7
+    it('TestCubeTopology_GetFaceEdgeIndices_TopFace', () => {
+      // Top face = edges 4,5,6,7 (19 LEDs each = 76 LEDs)
       const indices = getFaceEdgeIndices(1);
-      expect(indices).toHaveLength(160);
-      expect(indices).toContain(160); // edge 4 start
-      expect(indices).toContain(319); // edge 7 end
+      expect(indices).toHaveLength(76);
+      const edge4Start = getEdgeStartIndex(4); // 76
+      const edge7End = getEdgeStartIndex(7) + EDGE_LED_COUNTS[7] - 1; // 151
+      expect(indices).toContain(edge4Start);
+      expect(indices).toContain(edge7End);
     });
 
     it('TestCubeTopology_GetFaceEdgeIndices_FrontFace_CorrectEdges', () => {
       // Front face = edges 0,4,8,9
       const indices = getFaceEdgeIndices(2);
-      expect(indices).toHaveLength(160);
-      expect(indices).toContain(0);   // edge 0
-      expect(indices).toContain(160); // edge 4
-      expect(indices).toContain(320); // edge 8
-      expect(indices).toContain(360); // edge 9
+      // Edges 0,4 have 19 LEDs, edges 8,9 have 18 LEDs = 74 total
+      expect(indices).toHaveLength(74);
+      expect(indices).toContain(0); // edge 0
+      expect(indices).toContain(getEdgeStartIndex(4)); // edge 4
+      expect(indices).toContain(getEdgeStartIndex(8)); // edge 8
+      expect(indices).toContain(getEdgeStartIndex(9)); // edge 9
     });
 
     it('TestCubeTopology_GetFaceEdgeIndices_NegativeFace_Throws', () => {

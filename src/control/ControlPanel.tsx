@@ -1,4 +1,4 @@
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { useState } from 'react';
 import { Separator } from '@/components/ui/separator';
 import { PowerBrightnessPanel } from './PowerBrightnessPanel';
 import { SpeedIntensityPanel } from './SpeedIntensityPanel';
@@ -12,101 +12,180 @@ import { MIDIControls } from './MIDIControls';
 import { VideoControls } from './VideoControls';
 import { CameraControls } from './CameraControls';
 import { ThemePicker } from '@/themes/ThemePicker';
+import { ConnectionSettings } from './ConnectionSettings';
+import {
+  SlidersHorizontal,
+  Paintbrush,
+  Sparkles,
+  Palette,
+  BookmarkCheck,
+  AudioLines,
+  Piano,
+  Video,
+  Camera,
+  Settings,
+} from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
+
+interface NavItem {
+  id: string;
+  label: string;
+  icon: LucideIcon;
+}
+
+const NAV_ITEMS: NavItem[] = [
+  { id: 'controls', label: 'Controls', icon: SlidersHorizontal },
+  { id: 'paint', label: 'Paint', icon: Paintbrush },
+  { id: 'effects', label: 'Effects', icon: Sparkles },
+  { id: 'palettes', label: 'Palettes', icon: Palette },
+  { id: 'presets', label: 'Presets', icon: BookmarkCheck },
+  { id: 'audio', label: 'Audio', icon: AudioLines },
+  { id: 'midi', label: 'MIDI', icon: Piano },
+  { id: 'video', label: 'Video', icon: Video },
+  { id: 'camera', label: 'Camera', icon: Camera },
+  { id: 'settings', label: 'Settings', icon: Settings },
+];
 
 /**
  * ControlPanel — top-level container for all WLED control components.
  *
- * Layout Strategy:
- * - Uses shadcn Tabs for panel switching (visible on all viewports)
- * - On mobile (< md): tabs serve as primary navigation, one panel at a time
- * - On desktop (>= md): parent layout places this in a sidebar; tabs still work
- *   for organizing content in the fixed-width sidebar
- *
- * Touch targets: all tab triggers are min-h-11 (44px).
+ * Layout: Icon-based vertical sidebar nav on desktop (like Ableton's browser categories),
+ * horizontal icon bar on mobile. Each panel section gets a subtle header with accent border.
+ * More spacing between controls, larger touch targets.
  */
 export function ControlPanel() {
+  const [activeTab, setActiveTab] = useState('controls');
+
   return (
-    <div className="h-full flex flex-col bg-background theme-panel-texture">
-      <Tabs defaultValue="controls" className="flex-1 flex flex-col min-h-0">
-        <TabsList className="w-full justify-start gap-0 rounded-none border-b border-border bg-background/80 px-1 shrink-0 overflow-x-auto">
-          <TabsTrigger value="controls" className="min-h-11 px-3 text-xs data-[state=active]:bg-secondary rounded-md">
-            Controls
-          </TabsTrigger>
-          <TabsTrigger value="paint" className="min-h-11 px-3 text-xs data-[state=active]:bg-secondary rounded-md">
-            Paint
-          </TabsTrigger>
-          <TabsTrigger value="effects" className="min-h-11 px-3 text-xs data-[state=active]:bg-secondary rounded-md">
-            Effects
-          </TabsTrigger>
-          <TabsTrigger value="palettes" className="min-h-11 px-3 text-xs data-[state=active]:bg-secondary rounded-md">
-            Palettes
-          </TabsTrigger>
-          <TabsTrigger value="presets" className="min-h-11 px-3 text-xs data-[state=active]:bg-secondary rounded-md">
-            Presets
-          </TabsTrigger>
-          <TabsTrigger value="audio" className="min-h-11 px-3 text-xs data-[state=active]:bg-secondary rounded-md">
-            Audio
-          </TabsTrigger>
-          <TabsTrigger value="midi" className="min-h-11 px-3 text-xs data-[state=active]:bg-secondary rounded-md">
-            MIDI
-          </TabsTrigger>
-          <TabsTrigger value="video" className="min-h-11 px-3 text-xs data-[state=active]:bg-secondary rounded-md">
-            Video
-          </TabsTrigger>
-          <TabsTrigger value="camera" className="min-h-11 px-3 text-xs data-[state=active]:bg-secondary rounded-md">
-            Camera
-          </TabsTrigger>
-          <TabsTrigger value="settings" className="min-h-11 px-3 text-xs data-[state=active]:bg-secondary rounded-md">
-            Settings
-          </TabsTrigger>
-        </TabsList>
-
-        <div className="flex-1 overflow-y-auto min-h-0">
-          <TabsContent value="controls" className="p-4 space-y-4 mt-0">
-            <PowerBrightnessPanel />
-            <Separator className="bg-border" />
-            <SpeedIntensityPanel />
-            <Separator className="bg-border" />
-            <ColorPickerPanel />
-          </TabsContent>
-
-          <TabsContent value="paint" className="p-4 mt-0">
-            <PaintControls />
-          </TabsContent>
-
-          <TabsContent value="effects" className="p-4 mt-0">
-            <EffectBrowser />
-          </TabsContent>
-
-          <TabsContent value="palettes" className="p-4 mt-0">
-            <PaletteBrowser />
-          </TabsContent>
-
-          <TabsContent value="presets" className="p-4 mt-0">
-            <PresetPanel />
-          </TabsContent>
-
-          <TabsContent value="audio" className="p-4 mt-0">
-            <AudioControls />
-          </TabsContent>
-
-          <TabsContent value="midi" className="p-4 mt-0">
-            <MIDIControls />
-          </TabsContent>
-
-          <TabsContent value="video" className="p-4 mt-0">
-            <VideoControls />
-          </TabsContent>
-
-          <TabsContent value="camera" className="p-4 mt-0">
-            <CameraControls />
-          </TabsContent>
-
-          <TabsContent value="settings" className="p-4 mt-0">
-            <ThemePicker />
-          </TabsContent>
+    <div className="h-full flex flex-col md:flex-row bg-background theme-panel-texture">
+      {/* Navigation — horizontal on mobile, vertical on desktop */}
+      <nav className="shrink-0 border-b md:border-b-0 md:border-r border-border bg-card/30">
+        {/* Mobile: horizontal scroll bar */}
+        <div className="flex md:hidden overflow-x-auto px-1 py-1.5 gap-0.5 scrollbar-none">
+          {NAV_ITEMS.map((item) => {
+            const Icon = item.icon;
+            const isActive = activeTab === item.id;
+            return (
+              <button
+                key={item.id}
+                onClick={() => setActiveTab(item.id)}
+                className={`
+                  flex items-center gap-1.5 px-3 py-2 rounded-md text-xs font-medium shrink-0
+                  transition-all duration-150 cursor-pointer min-h-[40px]
+                  ${isActive
+                    ? 'bg-primary/15 text-primary border border-primary/30'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-accent/50 border border-transparent'
+                  }
+                `}
+                aria-label={item.label}
+              >
+                <Icon className="w-4 h-4 shrink-0" />
+                <span>{item.label}</span>
+              </button>
+            );
+          })}
         </div>
-      </Tabs>
+
+        {/* Desktop: vertical icon strip */}
+        <div className="hidden md:flex flex-col items-center py-3 px-1.5 gap-1 w-[52px]">
+          {NAV_ITEMS.map((item) => {
+            const Icon = item.icon;
+            const isActive = activeTab === item.id;
+            return (
+              <button
+                key={item.id}
+                onClick={() => setActiveTab(item.id)}
+                title={item.label}
+                className={`
+                  relative flex items-center justify-center w-9 h-9 rounded-md
+                  transition-all duration-150 cursor-pointer
+                  ${isActive
+                    ? 'nav-icon-active'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-accent/50'
+                  }
+                `}
+                aria-label={item.label}
+                aria-current={isActive ? 'page' : undefined}
+              >
+                <Icon className="w-[18px] h-[18px]" strokeWidth={isActive ? 2 : 1.5} />
+                {/* Active indicator bar */}
+                {isActive && (
+                  <span className="absolute left-0 top-1.5 bottom-1.5 w-[2px] rounded-full bg-primary" />
+                )}
+              </button>
+            );
+          })}
+        </div>
+      </nav>
+
+      {/* Panel content area */}
+      <div className="flex-1 overflow-y-auto min-h-0 control-scrollbar">
+        {activeTab === 'controls' && (
+          <div className="p-5 space-y-6">
+            <PowerBrightnessPanel />
+            <Separator className="bg-border/60" />
+            <SpeedIntensityPanel />
+            <Separator className="bg-border/60" />
+            <ColorPickerPanel />
+          </div>
+        )}
+
+        {activeTab === 'paint' && (
+          <div className="p-5">
+            <PaintControls />
+          </div>
+        )}
+
+        {activeTab === 'effects' && (
+          <div className="p-5">
+            <EffectBrowser />
+          </div>
+        )}
+
+        {activeTab === 'palettes' && (
+          <div className="p-5">
+            <PaletteBrowser />
+          </div>
+        )}
+
+        {activeTab === 'presets' && (
+          <div className="p-5">
+            <PresetPanel />
+          </div>
+        )}
+
+        {activeTab === 'audio' && (
+          <div className="p-5">
+            <AudioControls />
+          </div>
+        )}
+
+        {activeTab === 'midi' && (
+          <div className="p-5">
+            <MIDIControls />
+          </div>
+        )}
+
+        {activeTab === 'video' && (
+          <div className="p-5">
+            <VideoControls />
+          </div>
+        )}
+
+        {activeTab === 'camera' && (
+          <div className="p-5">
+            <CameraControls />
+          </div>
+        )}
+
+        {activeTab === 'settings' && (
+          <div className="p-5 space-y-6">
+            <ConnectionSettings />
+            <Separator className="bg-border/60" />
+            <ThemePicker />
+          </div>
+        )}
+      </div>
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { ManualPaintPlugin } from '../ManualPaintPlugin';
+import { DEFAULT_LED_COUNT, DEFAULT_FRAME_SIZE, EDGE_LED_COUNTS, getEdgeStartIndex } from '@/core/constants';
 
 describe('ManualPaintPlugin', () => {
   let plugin: ManualPaintPlugin;
@@ -18,7 +19,7 @@ describe('ManualPaintPlugin', () => {
     });
 
     it('TestManualPaintPlugin_Initialize_Resolves', async () => {
-      await expect(plugin.initialize({ ledCount: 480, frameRate: 30 })).resolves.toBeUndefined();
+      await expect(plugin.initialize({ ledCount: DEFAULT_LED_COUNT, frameRate: 30 })).resolves.toBeUndefined();
     });
 
     it('TestManualPaintPlugin_Destroy_NoThrow', () => {
@@ -32,7 +33,7 @@ describe('ManualPaintPlugin', () => {
       expect(frame).not.toBeNull();
       expect(frame!.type).toBe('direct');
       expect(frame!.leds).toBeInstanceOf(Uint8Array);
-      expect(frame!.leds!.length).toBe(480 * 3);
+      expect(frame!.leds!.length).toBe(DEFAULT_FRAME_SIZE);
     });
 
     it('TestManualPaintPlugin_Tick_InitialBufferAllZeros', () => {
@@ -53,18 +54,18 @@ describe('ManualPaintPlugin', () => {
     });
 
     it('TestManualPaintPlugin_SetPixel_LastLed', () => {
-      plugin.setPixel(479, 0, 255, 0);
+      plugin.setPixel(DEFAULT_LED_COUNT - 1, 0, 255, 0);
       const frame = plugin.tick(33);
-      const off = 479 * 3;
+      const off = (DEFAULT_LED_COUNT - 1) * 3;
       expect(frame!.leds![off]).toBe(0);
       expect(frame!.leds![off + 1]).toBe(255);
       expect(frame!.leds![off + 2]).toBe(0);
     });
 
     it('TestManualPaintPlugin_SetPixel_MiddleLed', () => {
-      plugin.setPixel(240, 128, 64, 32);
+      plugin.setPixel(100, 128, 64, 32);
       const frame = plugin.tick(33);
-      const off = 240 * 3;
+      const off = 100 * 3;
       expect(frame!.leds![off]).toBe(128);
       expect(frame!.leds![off + 1]).toBe(64);
       expect(frame!.leds![off + 2]).toBe(32);
@@ -73,14 +74,13 @@ describe('ManualPaintPlugin', () => {
     it('TestManualPaintPlugin_SetPixel_NegativeIndex_NoOp', () => {
       expect(() => plugin.setPixel(-1, 255, 0, 0)).not.toThrow();
       const frame = plugin.tick(33);
-      // Buffer should be all zeros
       for (let i = 0; i < frame!.leds!.length; i++) {
         expect(frame!.leds![i]).toBe(0);
       }
     });
 
     it('TestManualPaintPlugin_SetPixel_OutOfRange_NoOp', () => {
-      expect(() => plugin.setPixel(480, 255, 0, 0)).not.toThrow();
+      expect(() => plugin.setPixel(DEFAULT_LED_COUNT, 255, 0, 0)).not.toThrow();
       const frame = plugin.tick(33);
       for (let i = 0; i < frame!.leds!.length; i++) {
         expect(frame!.leds![i]).toBe(0);
@@ -102,46 +102,50 @@ describe('ManualPaintPlugin', () => {
   });
 
   describe('setEdge', () => {
-    it('TestManualPaintPlugin_SetEdge_Edge0_Sets40Leds', () => {
+    it('TestManualPaintPlugin_SetEdge_Edge0_SetsCorrectLeds', () => {
       plugin.setEdge(0, 255, 128, 64);
       const frame = plugin.tick(33);
-      for (let i = 0; i < 40; i++) {
+      const ledsOnEdge = EDGE_LED_COUNTS[0]; // 19
+      for (let i = 0; i < ledsOnEdge; i++) {
         const off = i * 3;
         expect(frame!.leds![off]).toBe(255);
         expect(frame!.leds![off + 1]).toBe(128);
         expect(frame!.leds![off + 2]).toBe(64);
       }
-      // LED 40 should be untouched
-      expect(frame!.leds![40 * 3]).toBe(0);
+      // Next LED should be untouched
+      expect(frame!.leds![ledsOnEdge * 3]).toBe(0);
     });
 
     it('TestManualPaintPlugin_SetEdge_Edge11_SetsLastEdge', () => {
       plugin.setEdge(11, 0, 255, 0);
       const frame = plugin.tick(33);
-      for (let i = 440; i < 480; i++) {
+      const start = getEdgeStartIndex(11);
+      const ledsOnEdge = EDGE_LED_COUNTS[11]; // 18
+      for (let i = start; i < start + ledsOnEdge; i++) {
         const off = i * 3;
         expect(frame!.leds![off]).toBe(0);
         expect(frame!.leds![off + 1]).toBe(255);
         expect(frame!.leds![off + 2]).toBe(0);
       }
-      // LED 439 should be untouched
-      expect(frame!.leds![439 * 3]).toBe(0);
+      // LED before edge 11 start should be untouched
+      expect(frame!.leds![(start - 1) * 3]).toBe(0);
     });
   });
 
   describe('setFaceEdges', () => {
-    it('TestManualPaintPlugin_SetFaceEdges_BottomFace_Sets160Leds', () => {
+    it('TestManualPaintPlugin_SetFaceEdges_BottomFace', () => {
       plugin.setFaceEdges(0, 0, 0, 255);
       const frame = plugin.tick(33);
-      // Bottom face = edges 0,1,2,3 = LEDs 0-159
-      for (let i = 0; i < 160; i++) {
+      // Bottom face = edges 0,1,2,3 (19 LEDs each = 76 total)
+      const totalLeds = EDGE_LED_COUNTS[0] + EDGE_LED_COUNTS[1] + EDGE_LED_COUNTS[2] + EDGE_LED_COUNTS[3];
+      for (let i = 0; i < totalLeds; i++) {
         const off = i * 3;
         expect(frame!.leds![off]).toBe(0);
         expect(frame!.leds![off + 1]).toBe(0);
         expect(frame!.leds![off + 2]).toBe(255);
       }
-      // LED 160 should be untouched
-      expect(frame!.leds![160 * 3]).toBe(0);
+      // Next LED should be untouched
+      expect(frame!.leds![totalLeds * 3]).toBe(0);
     });
 
     it('TestManualPaintPlugin_SetFaceEdges_FrontFace_SetsCorrectEdges', () => {
@@ -149,30 +153,34 @@ describe('ManualPaintPlugin', () => {
       plugin.setFaceEdges(2, 255, 255, 0);
       const frame = plugin.tick(33);
 
-      // Edge 0 (LEDs 0-39) should be colored
+      // Edge 0 should be colored
       expect(frame!.leds![0]).toBe(255);
       expect(frame!.leds![1]).toBe(255);
       expect(frame!.leds![2]).toBe(0);
 
-      // Edge 4 (LEDs 160-199) should be colored
-      expect(frame!.leds![160 * 3]).toBe(255);
+      // Edge 4 should be colored
+      const edge4Start = getEdgeStartIndex(4);
+      expect(frame!.leds![edge4Start * 3]).toBe(255);
 
-      // Edge 8 (LEDs 320-359) should be colored
-      expect(frame!.leds![320 * 3]).toBe(255);
+      // Edge 8 should be colored
+      const edge8Start = getEdgeStartIndex(8);
+      expect(frame!.leds![edge8Start * 3]).toBe(255);
 
-      // Edge 9 (LEDs 360-399) should be colored
-      expect(frame!.leds![360 * 3]).toBe(255);
+      // Edge 9 should be colored
+      const edge9Start = getEdgeStartIndex(9);
+      expect(frame!.leds![edge9Start * 3]).toBe(255);
 
-      // Edge 1 (LEDs 40-79) should NOT be colored
-      expect(frame!.leds![40 * 3]).toBe(0);
+      // Edge 1 should NOT be colored
+      const edge1Start = getEdgeStartIndex(1);
+      expect(frame!.leds![edge1Start * 3]).toBe(0);
     });
   });
 
   describe('fill', () => {
-    it('TestManualPaintPlugin_Fill_SetsAll480Leds', () => {
+    it('TestManualPaintPlugin_Fill_SetsAllLeds', () => {
       plugin.fill(128, 128, 128);
       const frame = plugin.tick(33);
-      for (let i = 0; i < 480; i++) {
+      for (let i = 0; i < DEFAULT_LED_COUNT; i++) {
         const off = i * 3;
         expect(frame!.leds![off]).toBe(128);
         expect(frame!.leds![off + 1]).toBe(128);
@@ -181,9 +189,7 @@ describe('ManualPaintPlugin', () => {
     });
 
     it('TestManualPaintPlugin_Fill_Black_ClearsBuffer', () => {
-      // First paint something
       plugin.fill(255, 255, 255);
-      // Then clear
       plugin.fill(0, 0, 0);
       const frame = plugin.tick(33);
       for (let i = 0; i < frame!.leds!.length; i++) {

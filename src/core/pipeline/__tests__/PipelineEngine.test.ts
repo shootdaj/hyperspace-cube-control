@@ -91,8 +91,8 @@ describe('PipelineEngine - runPipelineTick', () => {
   });
 
   it('TestPipelineEngine_Tick_UpdatesLedStateProxy', () => {
-    // Set up input to return non-zero LED data
-    const leds = new Uint8Array(480 * 3);
+    // Set up input to return non-zero LED data (224 LEDs = 672 bytes)
+    const leds = new Uint8Array(224 * 3);
     leds[0] = 255;
     leds[1] = 128;
     leds[2] = 64;

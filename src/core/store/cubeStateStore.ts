@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { DEFAULT_LED_COUNT } from '@/core/constants';
 import type { WLEDState, WLEDColor, WLEDIncomingSegment } from './types';
 
 interface CubeStateStore {
@@ -38,7 +39,7 @@ export const cubeStateStore = create<CubeStateStore>()((set) => ({
   colors: [[255, 160, 0], [0, 0, 0], [0, 0, 0]] as WLEDColor[],
   segments: [],
   firmwareVersion: '',
-  ledCount: 480,
+  ledCount: DEFAULT_LED_COUNT,
   setOn: (on) => set({ on }),
   setBrightness: (brightness) => set({ brightness }),
   setEffectIndex: (effectIndex) => set({ effectIndex }),

@@ -12,10 +12,11 @@ import {
 } from '@/components/ui/dialog';
 import { presetStore } from '@/core/store/presetStore';
 import { connectionStore } from '@/core/store/connectionStore';
+import { BookmarkCheck, Plus, Play, Trash2 } from 'lucide-react';
 
 /**
  * PresetPanel — save, load, and delete named presets.
- * Presets persist to localStorage (up to 50).
+ * Redesigned: Section header, better card layout, icon buttons.
  */
 export function PresetPanel() {
   const presets = presetStore((s) => s.presets);
@@ -43,13 +44,22 @@ export function PresetPanel() {
   }, []);
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full space-y-4">
+      <div className="section-header">
+        <BookmarkCheck className="w-3.5 h-3.5 text-primary" />
+        <span>Presets</span>
+        <span className="ml-auto text-[10px] font-mono text-muted-foreground/60 normal-case tracking-normal">
+          {presets.length} saved
+        </span>
+      </div>
+
       <Button
         onClick={() => setDialogOpen(true)}
-        className="w-full min-h-11 mb-3"
+        className="w-full min-h-11 gap-2"
         aria-label="Save current preset"
       >
-        Save Current
+        <Plus className="w-4 h-4" />
+        Save Current State
       </Button>
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
@@ -81,37 +91,39 @@ export function PresetPanel() {
         </DialogContent>
       </Dialog>
 
-      <ScrollArea className="flex-1 max-h-[300px]">
+      <ScrollArea className="flex-1 max-h-[400px]">
         {presets.length === 0 ? (
-          <p className="text-sm text-muted-foreground py-6 text-center">
-            No presets saved. Save your current setup!
-          </p>
+          <div className="text-center py-12">
+            <BookmarkCheck className="w-8 h-8 mx-auto text-muted-foreground/30 mb-3" />
+            <p className="text-sm text-muted-foreground">
+              No presets saved yet
+            </p>
+            <p className="text-xs text-muted-foreground/60 mt-1">
+              Save your current setup to recall it later
+            </p>
+          </div>
         ) : (
-          <div className="space-y-1">
+          <div className="space-y-1.5">
             {presets.map((preset) => (
               <div
                 key={preset.id}
-                className="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-accent/50"
+                className="flex items-center gap-2 px-3 py-2.5 rounded-md bg-secondary/30 border border-transparent hover:border-border transition-colors"
               >
-                <span className="flex-1 text-sm truncate">{preset.name}</span>
-                <Button
-                  size="sm"
-                  variant="default"
-                  className="min-h-9 px-3 text-xs"
+                <span className="flex-1 text-sm font-medium truncate">{preset.name}</span>
+                <button
                   onClick={() => handleApply(preset.id)}
+                  className="flex items-center justify-center w-8 h-8 rounded-md bg-primary/15 text-primary hover:bg-primary/25 transition-colors cursor-pointer"
                   aria-label="Apply preset"
                 >
-                  Apply
-                </Button>
-                <Button
-                  size="sm"
-                  variant="destructive"
-                  className="min-h-9 px-3 text-xs"
+                  <Play className="w-3.5 h-3.5" />
+                </button>
+                <button
                   onClick={() => handleDelete(preset.id)}
+                  className="flex items-center justify-center w-8 h-8 rounded-md text-destructive/60 hover:bg-destructive/15 hover:text-destructive transition-colors cursor-pointer"
                   aria-label="Delete preset"
                 >
-                  Delete
-                </Button>
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
               </div>
             ))}
           </div>

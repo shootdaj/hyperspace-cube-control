@@ -1,12 +1,12 @@
 import type { MappingStrategy, FrameData } from '@/core/pipeline/types';
 import { audioStore } from '@/stores/audioStore';
+import { DEFAULT_LED_COUNT, EDGE_COUNT, EDGE_LED_COUNTS, getEdgeStartIndex } from '@/core/constants';
 
-const LED_COUNT = 480;
+const LED_COUNT = DEFAULT_LED_COUNT;
 // 12 edges on the cube, one spectral band per edge
-const LEDS_PER_EDGE = 40;
 const SAMPLE_RATE = 44100;
 const BIN_COUNT = 1024; // fftSize=2048 → 1024 bins
-const NUM_BANDS = 12; // One per edge
+const NUM_BANDS = EDGE_COUNT; // One per edge
 
 /**
  * Convert HSL (h: 0-360, s: 0-1, l: 0-1) to RGB (each 0-255).
@@ -77,19 +77,19 @@ export function buildMelBands(
 }
 
 /**
- * AudioSpectrumMappingStrategy — converts FFT spectrum data to 480 LED RGB values.
+ * AudioSpectrumMappingStrategy — converts FFT spectrum data to 224 LED RGB values.
  *
  * Supports three visualization modes:
- * - spectrum: 12 mel-scaled frequency bands mapped to 12 edges (40 LEDs each)
+ * - spectrum: 12 mel-scaled frequency bands mapped to 12 edges (19 or 18 LEDs each)
  * - energy: Overall audio energy drives all LEDs with color from dominant frequency
- * - waveform: Spectrum bins mapped linearly across all 480 LEDs
+ * - waveform: Spectrum bins mapped linearly across all 224 LEDs
  *
  * No allocations in the map() hot path — all buffers are pre-allocated.
  */
 export class AudioSpectrumMappingStrategy implements MappingStrategy {
   readonly id = 'audio-spectrum';
 
-  /** Pre-allocated output buffer: 480 * 3 RGB bytes */
+  /** Pre-allocated output buffer: LED_COUNT * 3 RGB bytes */
   private outputBuffer: Uint8Array;
   /** Pre-computed mel band boundaries: [startBin, endBin] per band */
   private melBands: [number, number][];
@@ -136,7 +136,7 @@ export class AudioSpectrumMappingStrategy implements MappingStrategy {
   }
 
   /**
-   * Spectrum mode: 12 mel-scaled frequency bands → 12 edges.
+   * Spectrum mode: 12 mel-scaled frequency bands -> 12 edges.
    * Each edge gets a unique hue based on band index, brightness from amplitude.
    */
   private mapSpectrum(spectrum: Float32Array, threshold: number): void {
@@ -168,9 +168,10 @@ export class AudioSpectrumMappingStrategy implements MappingStrategy {
       const hue = (band / NUM_BANDS) * 300; // 0-300 degrees (skip back to red)
       const [r, g, b] = hslToRgb(hue, 1.0, brightness * 0.5);
 
-      // Write to all 40 LEDs on this edge
-      const edgeStart = band * LEDS_PER_EDGE * 3;
-      for (let led = 0; led < LEDS_PER_EDGE; led++) {
+      // Write to all LEDs on this edge (variable count per edge)
+      const edgeStart = getEdgeStartIndex(band) * 3;
+      const ledsOnEdge = EDGE_LED_COUNTS[band];
+      for (let led = 0; led < ledsOnEdge; led++) {
         const offset = edgeStart + led * 3;
         this.outputBuffer[offset] = r;
         this.outputBuffer[offset + 1] = g;
@@ -181,7 +182,7 @@ export class AudioSpectrumMappingStrategy implements MappingStrategy {
 
   /**
    * Energy mode: Overall energy drives brightness, dominant frequency drives hue.
-   * All 480 LEDs get the same color.
+   * All LEDs get the same color.
    */
   private mapEnergy(spectrum: Float32Array, threshold: number): void {
     let totalEnergy = 0;

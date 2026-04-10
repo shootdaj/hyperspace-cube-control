@@ -11,23 +11,28 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
+// The source uses window.location.protocol, not window.isSecureContext
+function mockLocationProtocol(protocol: string): void {
+  vi.stubGlobal('location', { ...window.location, protocol });
+}
+
 describe('MixedContentWarning', () => {
   it('TestMixedContentWarning_NoIp_RendersNothing', () => {
-    vi.stubGlobal('window', { ...window, isSecureContext: true });
+    mockLocationProtocol('https:');
     connectionStore.setState({ ip: '' });
     const { container } = render(<MixedContentWarning />);
     expect(container.innerHTML).toBe('');
   });
 
   it('TestMixedContentWarning_HttpPage_RendersNothing', () => {
-    vi.stubGlobal('window', { ...window, isSecureContext: false });
+    mockLocationProtocol('http:');
     connectionStore.setState({ ip: '192.168.1.100' });
     const { container } = render(<MixedContentWarning />);
     expect(container.innerHTML).toBe('');
   });
 
   it('TestMixedContentWarning_HttpsPageWithIp_RendersBanner', () => {
-    vi.stubGlobal('window', { ...window, isSecureContext: true });
+    mockLocationProtocol('https:');
     connectionStore.setState({ ip: '192.168.1.100' });
     render(<MixedContentWarning />);
     expect(screen.getByRole('alert')).toBeInTheDocument();
@@ -35,14 +40,14 @@ describe('MixedContentWarning', () => {
   });
 
   it('TestMixedContentWarning_Banner_ContainsLocalhostUrl', () => {
-    vi.stubGlobal('window', { ...window, isSecureContext: true });
+    mockLocationProtocol('https:');
     connectionStore.setState({ ip: '192.168.1.100' });
     render(<MixedContentWarning />);
     expect(screen.getByText('http://localhost:5173')).toBeInTheDocument();
   });
 
   it('TestMixedContentWarning_Banner_HasAlertRole', () => {
-    vi.stubGlobal('window', { ...window, isSecureContext: true });
+    mockLocationProtocol('https:');
     connectionStore.setState({ ip: '192.168.1.100' });
     render(<MixedContentWarning />);
     expect(screen.getByRole('alert')).toBeInTheDocument();

@@ -4,10 +4,12 @@ import { Label } from '@/components/ui/label';
 import { cubeStateStore } from '@/core/store/cubeStateStore';
 import { connectionStore } from '@/core/store/connectionStore';
 import { WLEDControlService } from '@/core/wled/WLEDControlService';
+import { Gauge, Zap } from 'lucide-react';
 
 /**
  * SpeedIntensityPanel — effect speed and intensity sliders.
- * Debounced at 100ms to avoid flooding ESP32.
+ * Redesigned: Section header with accent border, prominent value readouts,
+ * contextual labels showing percentage.
  */
 export function SpeedIntensityPanel() {
   const speed = cubeStateStore((s) => s.speed);
@@ -42,17 +44,27 @@ export function SpeedIntensityPanel() {
     [ip],
   );
 
+  const speedPercent = Math.round((speed / 255) * 100);
+  const intensityPercent = Math.round((intensity / 255) * 100);
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
+      <div className="section-header">
+        <Gauge className="w-3.5 h-3.5 text-primary" />
+        <span>Speed & Intensity</span>
+      </div>
+
       {/* Speed slider */}
-      <div className="space-y-2">
-        <div className="flex items-center justify-between min-h-6">
-          <Label htmlFor="speed-slider" className="text-sm font-medium">
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <Label htmlFor="speed-slider" className="text-sm font-medium text-foreground/80 flex items-center gap-2">
+            <Zap className="w-3.5 h-3.5 text-muted-foreground" />
             Speed
           </Label>
-          <span className="text-sm text-muted-foreground tabular-nums w-8 text-right">
-            {speed}
-          </span>
+          <div className="flex items-baseline gap-1">
+            <span className="value-readout">{speed}</span>
+            <span className="text-xs text-muted-foreground font-mono">{speedPercent}%</span>
+          </div>
         </div>
         <Slider
           id="speed-slider"
@@ -63,17 +75,23 @@ export function SpeedIntensityPanel() {
           onValueChange={handleSpeedChange}
           className="min-h-11 [&_[role=slider]]:h-5 [&_[role=slider]]:w-5"
         />
+        <div className="flex justify-between text-[10px] text-muted-foreground/60 font-mono px-0.5">
+          <span>SLOW</span>
+          <span>FAST</span>
+        </div>
       </div>
 
       {/* Intensity slider */}
-      <div className="space-y-2">
-        <div className="flex items-center justify-between min-h-6">
-          <Label htmlFor="intensity-slider" className="text-sm font-medium">
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <Label htmlFor="intensity-slider" className="text-sm font-medium text-foreground/80 flex items-center gap-2">
+            <Gauge className="w-3.5 h-3.5 text-muted-foreground" />
             Intensity
           </Label>
-          <span className="text-sm text-muted-foreground tabular-nums w-8 text-right">
-            {intensity}
-          </span>
+          <div className="flex items-baseline gap-1">
+            <span className="value-readout">{intensity}</span>
+            <span className="text-xs text-muted-foreground font-mono">{intensityPercent}%</span>
+          </div>
         </div>
         <Slider
           id="intensity-slider"
@@ -84,6 +102,10 @@ export function SpeedIntensityPanel() {
           onValueChange={handleIntensityChange}
           className="min-h-11 [&_[role=slider]]:h-5 [&_[role=slider]]:w-5"
         />
+        <div className="flex justify-between text-[10px] text-muted-foreground/60 font-mono px-0.5">
+          <span>LOW</span>
+          <span>HIGH</span>
+        </div>
       </div>
     </div>
   );

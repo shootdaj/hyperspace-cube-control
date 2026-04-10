@@ -1,4 +1,5 @@
 import type { FrameData, InputPlugin, MappingStrategy, OutputPlugin, PluginContext } from '@/core/pipeline/types';
+import { DEFAULT_FRAME_SIZE } from '@/core/constants';
 
 export class MockInputPlugin implements InputPlugin {
   readonly id = 'mock-input';
@@ -7,7 +8,7 @@ export class MockInputPlugin implements InputPlugin {
   destroyed = false;
   private _nextFrame: FrameData | null = {
     type: 'direct',
-    leds: new Uint8Array(480 * 3),
+    leds: new Uint8Array(DEFAULT_FRAME_SIZE),
   };
 
   async initialize(_context: PluginContext): Promise<void> {

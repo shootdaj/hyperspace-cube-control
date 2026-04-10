@@ -13,9 +13,9 @@
  * of that face's region.
  */
 
-const LEDS_PER_EDGE = 40;
-const EDGE_COUNT = 12;
-const LED_COUNT = EDGE_COUNT * LEDS_PER_EDGE; // 480
+import { EDGE_LED_COUNTS, DEFAULT_LED_COUNT, getEdgeStartIndex } from '@/core/constants';
+
+const LED_COUNT = DEFAULT_LED_COUNT;
 
 
 /**
@@ -106,14 +106,15 @@ function samplePixelRgb(
 }
 
 /**
- * Sample 40 pixels along one border of a face region.
+ * Sample pixels along one border of a face region.
  *
  * @param data - RGBA pixel data
  * @param width - Image width
  * @param height - Image height
  * @param region - The face region in normalized coordinates
  * @param border - Which border to sample (top/right/bottom/left)
- * @returns Array of 40 [r,g,b] triplets
+ * @param sampleCount - Number of samples to take (LEDs on this edge)
+ * @returns Array of [r,g,b] triplets
  */
 export function sampleBorder(
   data: Uint8ClampedArray,
@@ -121,6 +122,7 @@ export function sampleBorder(
   height: number,
   region: FaceRegion,
   border: BorderSide,
+  sampleCount: number = 19,
 ): Array<[number, number, number]> {
   const samples: Array<[number, number, number]> = [];
 
@@ -129,8 +131,8 @@ export function sampleBorder(
   const right = (region.x + region.width) * (width - 1);
   const bottom = (region.y + region.height) * (height - 1);
 
-  for (let i = 0; i < LEDS_PER_EDGE; i++) {
-    const t = i / (LEDS_PER_EDGE - 1);
+  for (let i = 0; i < sampleCount; i++) {
+    const t = sampleCount > 1 ? i / (sampleCount - 1) : 0.5;
     let px: number, py: number;
 
     switch (border) {
@@ -159,7 +161,7 @@ export function sampleBorder(
 }
 
 /**
- * Extract 480 LED colors using face-to-edge extraction strategy.
+ * Extract 224 LED colors using face-to-edge extraction strategy.
  *
  * Divides the video frame into 6 face regions, then samples the border
  * pixels of each region corresponding to the cube's 12 edges.
@@ -167,7 +169,7 @@ export function sampleBorder(
  * @param imageData - RGBA pixel data from getImageData()
  * @param width - Image width in pixels
  * @param height - Image height in pixels
- * @returns Uint8Array of 480*3 RGB bytes
+ * @returns Uint8Array of LED_COUNT*3 RGB bytes
  */
 export function extractFaceEdges(
   imageData: Uint8ClampedArray,
@@ -178,11 +180,12 @@ export function extractFaceEdges(
 
   for (const mapping of EDGE_BORDER_MAPPINGS) {
     const region = FACE_REGIONS[mapping.faceIndex];
-    const samples = sampleBorder(imageData, width, height, region, mapping.border);
+    const ledsOnEdge = EDGE_LED_COUNTS[mapping.edgeIndex];
+    const samples = sampleBorder(imageData, width, height, region, mapping.border, ledsOnEdge);
 
-    for (let led = 0; led < LEDS_PER_EDGE; led++) {
+    for (let led = 0; led < ledsOnEdge; led++) {
       const [r, g, b] = samples[led];
-      const outIdx = (mapping.edgeIndex * LEDS_PER_EDGE + led) * 3;
+      const outIdx = (getEdgeStartIndex(mapping.edgeIndex) + led) * 3;
       result[outIdx] = r;
       result[outIdx + 1] = g;
       result[outIdx + 2] = b;

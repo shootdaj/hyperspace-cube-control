@@ -3,6 +3,7 @@ import { AudioPlugin } from '@/plugins/inputs/AudioPlugin';
 import { AudioSpectrumMappingStrategy } from '@/plugins/mappings/AudioSpectrumMappingStrategy';
 import { AudioContextManager } from '@/plugins/inputs/AudioContextManager';
 import { ledStateProxy } from '@/core/store/ledStateProxy';
+import { DEFAULT_LED_COUNT, DEFAULT_FRAME_SIZE } from '@/core/constants';
 import { audioStore } from '@/stores/audioStore';
 import { runPipelineTick, FRAME_INTERVAL_MS, type PipelineRefs } from '@/core/pipeline/PipelineEngine';
 import { pluginRegistry } from '@/core/pipeline/PluginRegistry';
@@ -79,7 +80,7 @@ describe('Audio Pipeline Integration', () => {
   it('TestAudioPipeline_TickProducesLedOutput', async () => {
     const { manager } = createMockManager(200);
     const audioPlugin = new AudioPlugin(manager);
-    await audioPlugin.initialize({ ledCount: 480, frameRate: 30 });
+    await audioPlugin.initialize({ ledCount: DEFAULT_LED_COUNT, frameRate: 30 });
     await audioPlugin.startAudio();
 
     const mapping = new AudioSpectrumMappingStrategy();
@@ -103,7 +104,7 @@ describe('Audio Pipeline Integration', () => {
 
     // Output should have been sent
     expect(mockOutput.sentFrames).toHaveLength(1);
-    expect(mockOutput.sentFrames[0].leds.length).toBe(480 * 3);
+    expect(mockOutput.sentFrames[0].leds.length).toBe(DEFAULT_FRAME_SIZE);
 
     audioPlugin.destroy();
   });
@@ -111,7 +112,7 @@ describe('Audio Pipeline Integration', () => {
   it('TestAudioPipeline_TickReturnsNullBeforeStart', async () => {
     const { manager } = createMockManager();
     const audioPlugin = new AudioPlugin(manager);
-    await audioPlugin.initialize({ ledCount: 480, frameRate: 30 });
+    await audioPlugin.initialize({ ledCount: DEFAULT_LED_COUNT, frameRate: 30 });
     // Do NOT call startAudio
 
     const mapping = new AudioSpectrumMappingStrategy();
@@ -135,7 +136,7 @@ describe('Audio Pipeline Integration', () => {
   it('TestAudioPipeline_SpectrumDataFlowsToMapping', async () => {
     const { manager, mockAnalyser } = createMockManager(128);
     const audioPlugin = new AudioPlugin(manager);
-    await audioPlugin.initialize({ ledCount: 480, frameRate: 30 });
+    await audioPlugin.initialize({ ledCount: DEFAULT_LED_COUNT, frameRate: 30 });
     await audioPlugin.startAudio();
 
     // Tick to get frame data
@@ -149,9 +150,9 @@ describe('Audio Pipeline Integration', () => {
 
     // Map it
     const mapping = new AudioSpectrumMappingStrategy();
-    const result = mapping.map(frame!, 480);
+    const result = mapping.map(frame!, DEFAULT_LED_COUNT);
 
-    expect(result.length).toBe(480 * 3);
+    expect(result.length).toBe(DEFAULT_FRAME_SIZE);
     // With non-zero input, should produce non-zero output
     let sum = 0;
     for (let i = 0; i < result.length; i++) sum += result[i];
@@ -164,7 +165,7 @@ describe('Audio Pipeline Integration', () => {
     const manualPlugin = new MockInputPlugin();
     const { manager } = createMockManager(150);
     const audioPlugin = new AudioPlugin(manager);
-    await audioPlugin.initialize({ ledCount: 480, frameRate: 30 });
+    await audioPlugin.initialize({ ledCount: DEFAULT_LED_COUNT, frameRate: 30 });
     await audioPlugin.startAudio();
 
     const mapping = new AudioSpectrumMappingStrategy();
@@ -201,12 +202,12 @@ describe('Audio Pipeline Integration', () => {
   it('TestAudioPipeline_SwapBackFromAudioToManualPaint', async () => {
     const { manager } = createMockManager(200);
     const audioPlugin = new AudioPlugin(manager);
-    await audioPlugin.initialize({ ledCount: 480, frameRate: 30 });
+    await audioPlugin.initialize({ ledCount: DEFAULT_LED_COUNT, frameRate: 30 });
     await audioPlugin.startAudio();
 
     const manualPlugin = new MockInputPlugin();
     // Set a specific pixel on manual
-    const leds = new Uint8Array(480 * 3);
+    const leds = new Uint8Array(DEFAULT_FRAME_SIZE);
     leds[0] = 42; leds[1] = 84; leds[2] = 126;
     manualPlugin.setNextFrame({ type: 'direct', leds });
 
@@ -248,7 +249,7 @@ describe('Audio Pipeline Integration', () => {
   it('TestAudioPipeline_VisualizationModeAffectsOutput', async () => {
     const { manager } = createMockManager(180);
     const audioPlugin = new AudioPlugin(manager);
-    await audioPlugin.initialize({ ledCount: 480, frameRate: 30 });
+    await audioPlugin.initialize({ ledCount: DEFAULT_LED_COUNT, frameRate: 30 });
     await audioPlugin.startAudio();
 
     const mapping = new AudioSpectrumMappingStrategy();
@@ -256,13 +257,13 @@ describe('Audio Pipeline Integration', () => {
     // Spectrum mode
     audioStore.getState().setVisualizationMode('spectrum');
     const spectrumFrame = audioPlugin.tick(16)!;
-    const spectrumResult = mapping.map(spectrumFrame, 480);
+    const spectrumResult = mapping.map(spectrumFrame, DEFAULT_LED_COUNT);
 
     // Energy mode - create fresh mapping to avoid smoothing interference
     audioStore.getState().setVisualizationMode('energy');
     const energyMapping = new AudioSpectrumMappingStrategy();
     const energyFrame = audioPlugin.tick(16)!;
-    const energyResult = energyMapping.map(energyFrame, 480);
+    const energyResult = energyMapping.map(energyFrame, DEFAULT_LED_COUNT);
 
     // In energy mode, all LEDs should be the same color
     const er = energyResult[0], eg = energyResult[1], eb = energyResult[2];
