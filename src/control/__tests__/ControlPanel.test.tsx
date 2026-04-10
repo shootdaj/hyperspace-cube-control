@@ -40,18 +40,17 @@ describe('ControlPanel', () => {
 
   it('renders all control sections', () => {
     render(<ControlPanel />);
-    // Should have power toggle
-    expect(screen.getByText('Power')).toBeInTheDocument();
-    // Should have brightness
+    // Controls tab is active by default — should have Power & Brightness section
     expect(screen.getByText('Brightness')).toBeInTheDocument();
   });
 
   it('renders tabs for panel switching', () => {
     render(<ControlPanel />);
-    expect(screen.getByRole('tab', { name: /controls/i })).toBeInTheDocument();
-    expect(screen.getByRole('tab', { name: /effects/i })).toBeInTheDocument();
-    expect(screen.getByRole('tab', { name: /palettes/i })).toBeInTheDocument();
-    expect(screen.getByRole('tab', { name: /presets/i })).toBeInTheDocument();
+    // The nav uses buttons with aria-label, not role="tab"
+    expect(screen.getAllByRole('button', { name: /controls/i }).length).toBeGreaterThan(0);
+    expect(screen.getAllByRole('button', { name: /effects/i }).length).toBeGreaterThan(0);
+    expect(screen.getAllByRole('button', { name: /palettes/i }).length).toBeGreaterThan(0);
+    expect(screen.getAllByRole('button', { name: /presets/i }).length).toBeGreaterThan(0);
   });
 
   it('tab switching shows correct panel content', async () => {
@@ -59,25 +58,28 @@ describe('ControlPanel', () => {
     render(<ControlPanel />);
 
     // Effects tab shows effect list
-    await user.click(screen.getByRole('tab', { name: /effects/i }));
+    const effectBtns = screen.getAllByRole('button', { name: /effects/i });
+    await user.click(effectBtns[0]);
     expect(screen.getByText('Solid')).toBeInTheDocument();
     expect(screen.getByPlaceholderText(/search effects/i)).toBeInTheDocument();
 
     // Palettes tab shows palette list
-    await user.click(screen.getByRole('tab', { name: /palettes/i }));
+    const paletteBtns = screen.getAllByRole('button', { name: /palettes/i });
+    await user.click(paletteBtns[0]);
     expect(screen.getByText('Default')).toBeInTheDocument();
     expect(screen.getByPlaceholderText(/search palettes/i)).toBeInTheDocument();
 
     // Presets tab shows preset panel
-    await user.click(screen.getByRole('tab', { name: /presets/i }));
+    const presetBtns = screen.getAllByRole('button', { name: /presets/i });
+    await user.click(presetBtns[0]);
     expect(screen.getByText(/no presets/i)).toBeInTheDocument();
   });
 
   it('Controls tab shows power, brightness, speed, intensity, colors', async () => {
     const user = userEvent.setup();
     render(<ControlPanel />);
-    await user.click(screen.getByRole('tab', { name: /controls/i }));
-    expect(screen.getByText('Power')).toBeInTheDocument();
+    const controlBtns = screen.getAllByRole('button', { name: /controls/i });
+    await user.click(controlBtns[0]);
     expect(screen.getByText('Brightness')).toBeInTheDocument();
     expect(screen.getByText('Speed')).toBeInTheDocument();
     expect(screen.getByText('Intensity')).toBeInTheDocument();

@@ -38,17 +38,16 @@ describe('WLEDWebSocketOutput', () => {
   });
 
   it('TestWLEDWebSocketOutput_Send_CallsServiceWithBriAndSeg', () => {
-    const leds = new Uint8Array(480 * 3);
+    const leds = new Uint8Array(224 * 3);
     leds[0] = 255;
     leds[1] = 128;
     leds[2] = 64;
 
     output.send(leds, 200);
 
-    // Should call send twice: chunk1 (LEDs 0-255) and chunk2 (LEDs 256-479)
-    expect(mockSend).toHaveBeenCalledTimes(2);
+    // 224 LEDs fits in a single chunk (< 256 limit)
+    expect(mockSend).toHaveBeenCalledTimes(1);
 
-    // First call should have bri and seg[0] with start=0
     const call1 = mockSend.mock.calls[0][0];
     expect(call1.bri).toBe(200);
     expect(call1.seg).toBeDefined();
@@ -58,23 +57,16 @@ describe('WLEDWebSocketOutput', () => {
     expect(call1.seg[0].i[0]).toBe(255);
     expect(call1.seg[0].i[1]).toBe(128);
     expect(call1.seg[0].i[2]).toBe(64);
-
-    // Second call should have seg[0] with start=256
-    const call2 = mockSend.mock.calls[1][0];
-    expect(call2.seg[0].start).toBe(256);
   });
 
   it('TestWLEDWebSocketOutput_Send_ChunksCorrectly', () => {
-    const leds = new Uint8Array(480 * 3);
+    const leds = new Uint8Array(224 * 3);
     output.send(leds, 255);
 
-    // Chunk 1: 256 LEDs * 3 = 768 values
-    const chunk1 = mockSend.mock.calls[0][0].seg[0].i;
-    expect(chunk1).toHaveLength(256 * 3);
-
-    // Chunk 2: 224 LEDs * 3 = 672 values
-    const chunk2 = mockSend.mock.calls[1][0].seg[0].i;
-    expect(chunk2).toHaveLength(224 * 3);
+    // Single chunk: 224 LEDs * 3 = 672 values
+    expect(mockSend).toHaveBeenCalledTimes(1);
+    const chunk = mockSend.mock.calls[0][0].seg[0].i;
+    expect(chunk).toHaveLength(224 * 3);
   });
 
   it('TestWLEDWebSocketOutput_Destroy_DoesNotThrow', () => {

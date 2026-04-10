@@ -1,4 +1,5 @@
 import type { MappingStrategy, FrameData } from '@/core/pipeline/types';
+import { DEFAULT_FRAME_SIZE } from '@/core/constants';
 
 /**
  * EdgeSamplingStrategy — MappingStrategy that passes through direct LED data.
@@ -14,7 +15,7 @@ import type { MappingStrategy, FrameData } from '@/core/pipeline/types';
 export class EdgeSamplingStrategy implements MappingStrategy {
   readonly id = 'edge-sampling';
 
-  private outputBuffer = new Uint8Array(480 * 3);
+  private outputBuffer = new Uint8Array(DEFAULT_FRAME_SIZE);
 
   map(frame: FrameData, ledCount: number): Uint8Array {
     if (this.outputBuffer.length !== ledCount * 3) {

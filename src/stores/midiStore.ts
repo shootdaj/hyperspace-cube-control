@@ -53,6 +53,15 @@ interface MIDIState {
   /** Error message from MIDI initialization */
   error: string | null;
 
+  /** 8 drum pad colors as RGB tuples (rainbow default) */
+  padColors: [number, number, number][];
+  /** 8 MIDI note numbers mapped to drum pads (standard drum pad notes) */
+  padNoteMap: number[];
+  /** Whether pad color holds after note-off (false = fade back to black) */
+  padHoldMode: boolean;
+  /** Which pad is in learn mode (null = none) */
+  padLearnIndex: number | null;
+
   // Actions
   setIsSupported: (supported: boolean) => void;
   setIsEnabled: (enabled: boolean) => void;
@@ -68,6 +77,10 @@ interface MIDIState {
   updateLastCCValue: (cc: number, value: number) => void;
   setError: (error: string | null) => void;
   clearAllMappings: () => void;
+  setPadColor: (index: number, rgb: [number, number, number]) => void;
+  setPadNote: (index: number, note: number) => void;
+  setPadHoldMode: (v: boolean) => void;
+  setPadLearnIndex: (index: number | null) => void;
 }
 
 export const midiStore = create<MIDIState>((set, get) => ({
@@ -80,6 +93,14 @@ export const midiStore = create<MIDIState>((set, get) => ({
   learnTarget: null,
   lastCCValues: {},
   error: null,
+
+  padColors: [
+    [255, 0, 0], [255, 127, 0], [255, 255, 0], [0, 255, 0],
+    [0, 127, 255], [0, 0, 255], [127, 0, 255], [255, 0, 127],
+  ],
+  padNoteMap: [36, 37, 38, 39, 40, 41, 42, 43],
+  padHoldMode: false,
+  padLearnIndex: null,
 
   setIsSupported: (isSupported) => set({ isSupported }),
   setIsEnabled: (isEnabled) => set({ isEnabled }),
@@ -135,4 +156,17 @@ export const midiStore = create<MIDIState>((set, get) => ({
   setError: (error) => set({ error }),
 
   clearAllMappings: () => set({ ccMappings: [], noteMappings: [] }),
+
+  setPadColor: (index, rgb) => {
+    const padColors = [...get().padColors];
+    padColors[index] = rgb;
+    set({ padColors });
+  },
+  setPadNote: (index, note) => {
+    const padNoteMap = [...get().padNoteMap];
+    padNoteMap[index] = note;
+    set({ padNoteMap });
+  },
+  setPadHoldMode: (v) => set({ padHoldMode: v }),
+  setPadLearnIndex: (v) => set({ padLearnIndex: v }),
 }));

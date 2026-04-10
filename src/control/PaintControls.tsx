@@ -1,35 +1,14 @@
 import { useCallback } from 'react';
-import { HexColorPicker } from 'react-colorful';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { paintStore, type BrushSize } from '@/stores/paintStore';
-import { paintPlugin, paintOutput } from '@/plugins/inputs/paintSingleton';
+import { paintPlugin } from '@/plugins/inputs/paintSingleton';
 import { ledStateProxy } from '@/core/store/ledStateProxy';
-
-/**
- * Convert hex color string "#rrggbb" to [R, G, B] tuple.
- */
-function hexToRgb(hex: string): [number, number, number] {
-  const clean = hex.replace('#', '');
-  return [
-    parseInt(clean.slice(0, 2), 16),
-    parseInt(clean.slice(2, 4), 16),
-    parseInt(clean.slice(4, 6), 16),
-  ];
-}
-
-/**
- * Convert [R, G, B] tuple to hex string "#rrggbb".
- */
-function rgbToHex(r: number, g: number, b: number): string {
-  return (
-    '#' +
-    [r, g, b]
-      .map((c) => Math.max(0, Math.min(255, c)).toString(16).padStart(2, '0'))
-      .join('')
-  );
-}
+import { connectionStore } from '@/core/store/connectionStore';
+import { SACNController } from '@/core/wled/SACNController';
+import { XYColorGrid } from './XYColorGrid';
+import { DEFAULT_LED_COUNT, BYTES_PER_LED } from '@/core/constants';
 
 const BRUSH_OPTIONS: { value: BrushSize; label: string; description: string }[] = [
   { value: 'single', label: 'Single', description: 'One LED' },
@@ -38,24 +17,48 @@ const BRUSH_OPTIONS: { value: BrushSize; label: string; description: string }[] 
 ];
 
 /**
- * PaintControls — color picker, brush size selector, paint mode toggle,
- * and clear/fill actions for manual LED painting.
+ * Send the full LED buffer to the cube via REST API (non-sACN fallback).
+ * Uses WLED seg.i format with all 224 LEDs.
+ */
+function sendFullBufferViaRest(buffer: Uint8Array): void {
+  const ip = connectionStore.getState().ip;
+  if (!ip) return;
+
+  const payload: (number | string)[] = [0];
+  for (let i = 0; i < DEFAULT_LED_COUNT; i++) {
+    const off = i * BYTES_PER_LED;
+    const r = buffer[off];
+    const g = buffer[off + 1];
+    const b = buffer[off + 2];
+    payload.push(
+      (r < 16 ? '0' : '') + r.toString(16) +
+      (g < 16 ? '0' : '') + g.toString(16) +
+      (b < 16 ? '0' : '') + b.toString(16),
+    );
+  }
+
+  fetch(`http://${ip}/json/state`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ seg: { i: payload } }),
+  }).catch(() => {});
+}
+
+/**
+ * PaintControls — color picker, brush size selector, and clear/fill actions
+ * for manual LED painting.
+ *
+ * Paint mode is auto-enabled by ControlPanel when the paint tab is active.
+ * No toggle needed — opening the paint tab = paint mode on, leaving = off.
  *
  * All touch targets are min-h-11 (44px) for mobile accessibility.
  */
 export function PaintControls() {
-  const isPaintMode = paintStore((s) => s.isPaintMode);
   const brushSize = paintStore((s) => s.brushSize);
   const color = paintStore((s) => s.color);
 
-  const hexColor = rgbToHex(color[0], color[1], color[2]);
-
-  const handleTogglePaintMode = useCallback(() => {
-    paintStore.getState().setIsPaintMode(!paintStore.getState().isPaintMode);
-  }, []);
-
-  const handleColorChange = useCallback((hex: string) => {
-    paintStore.getState().setColor(hexToRgb(hex));
+  const handleColorSelect = useCallback((rgb: [number, number, number]) => {
+    paintStore.getState().setColor(rgb);
   }, []);
 
   const handleBrushSize = useCallback((size: BrushSize) => {
@@ -64,54 +67,43 @@ export function PaintControls() {
 
   const handleClear = useCallback(() => {
     paintPlugin.fill(0, 0, 0);
-    ledStateProxy.colors.set(paintPlugin.getBuffer());
+    const buf = paintPlugin.getBuffer();
+    ledStateProxy.colors.set(buf);
     ledStateProxy.lastUpdated = performance.now();
-    paintOutput.sendAll(paintPlugin.getBuffer());
+
+    // Send to cube: sACN path handles it via useFrame reading ledStateProxy,
+    // REST fallback for when sACN is not active
+    let sacnActive = false;
+    try { sacnActive = SACNController.getInstance().isActive(); } catch { /* not init */ }
+    if (!sacnActive) {
+      sendFullBufferViaRest(buf);
+    }
   }, []);
 
   const handleFill = useCallback(() => {
     const [r, g, b] = paintStore.getState().color;
     paintPlugin.fill(r, g, b);
-    ledStateProxy.colors.set(paintPlugin.getBuffer());
+    const buf = paintPlugin.getBuffer();
+    ledStateProxy.colors.set(buf);
     ledStateProxy.lastUpdated = performance.now();
-    paintOutput.sendAll(paintPlugin.getBuffer());
+
+    // Send to cube
+    let sacnActive = false;
+    try { sacnActive = SACNController.getInstance().isActive(); } catch { /* not init */ }
+    if (!sacnActive) {
+      sendFullBufferViaRest(buf);
+    }
   }, []);
 
   return (
     <div className="space-y-4">
-      {/* Paint Mode Toggle */}
+      {/* XY Color Grid — live cube controller */}
       <div className="space-y-2">
-        <Label className="text-sm font-medium">Paint Mode</Label>
-        <Button
-          aria-label="Paint Mode"
-          variant={isPaintMode ? 'default' : 'outline'}
-          className={`w-full min-h-11 text-sm font-medium ${
-            isPaintMode
-              ? 'bg-green-600 hover:bg-green-700 text-white'
-              : 'border-border text-muted-foreground hover:text-foreground'
-          }`}
-          onClick={handleTogglePaintMode}
-        >
-          {isPaintMode ? 'Paint Mode: ON' : 'Paint Mode: OFF'}
-        </Button>
-      </div>
-
-      <Separator className="bg-border" />
-
-      {/* Color Picker */}
-      <div className="space-y-2">
-        <Label className="text-sm font-medium">Paint Color</Label>
-        <div className="flex items-center gap-3">
-          <div
-            className="h-11 w-11 rounded-md border border-border shrink-0"
-            style={{ backgroundColor: hexColor }}
-          />
-          <span className="font-mono text-xs text-muted-foreground uppercase">{hexColor}</span>
-        </div>
-        <HexColorPicker
-          color={hexColor}
-          onChange={handleColorChange}
-          style={{ width: '100%' }}
+        <Label className="text-sm font-medium">Color</Label>
+        <XYColorGrid
+          onColorSelect={handleColorSelect}
+          selectedColor={color}
+          liveControl
         />
       </div>
 

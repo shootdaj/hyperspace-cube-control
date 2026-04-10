@@ -1,4 +1,22 @@
 import { WLEDWebSocketService } from '@/core/wled/WLEDWebSocketService';
+import { connectionStore } from '@/core/store/connectionStore';
+import { DEFAULT_LED_COUNT, DEFAULT_FRAME_SIZE } from '@/core/constants';
+
+/**
+ * Convert an RGB byte triplet to a 6-character hex string ("RRGGBB").
+ *
+ * WLED's seg.i JSON parser uses type-checking to distinguish LED indices
+ * from colors: plain integers are indices, strings/arrays are colors.
+ * Encoding colors as hex strings ensures WLED interprets them correctly
+ * and is the most compact format per the WLED docs.
+ */
+function rgbToHex(r: number, g: number, b: number): string {
+  return (
+    (r < 16 ? '0' : '') + r.toString(16) +
+    (g < 16 ? '0' : '') + g.toString(16) +
+    (b < 16 ? '0' : '') + b.toString(16)
+  );
+}
 
 /**
  * Groups sorted indices into contiguous ranges.
@@ -34,7 +52,7 @@ function buildRanges(sorted: number[]): { start: number; end: number }[] {
  * Use sendAll() for bulk operations (clear/fill) that bypass diffing.
  */
 export class WLEDPaintOutput {
-  private lastSent = new Uint8Array(480 * 3);
+  private lastSent = new Uint8Array(DEFAULT_FRAME_SIZE);
   private pendingBuffer: Uint8Array | null = null;
   private throttleTimer: ReturnType<typeof setTimeout> | null = null;
   private readonly THROTTLE_MS = 33; // ~30fps
@@ -63,7 +81,7 @@ export class WLEDPaintOutput {
 
     // Find changed LED indices
     const changed: number[] = [];
-    for (let i = 0; i < 480; i++) {
+    for (let i = 0; i < DEFAULT_LED_COUNT; i++) {
       const off = i * 3;
       if (
         buf[off] !== this.lastSent[off] ||
@@ -76,18 +94,33 @@ export class WLEDPaintOutput {
 
     if (changed.length === 0) return;
 
-    // Build contiguous ranges and send each
+    // Build contiguous ranges and send each.
+    // WLED seg.i format: [startIndex, "RRGGBB", "RRGGBB", ...]
+    // Colors MUST be hex strings (or [R,G,B] arrays), NOT flat integers.
+    // WLED's parser (json.cpp) uses JSON type-checking: integers = LED indices,
+    // strings/arrays = colors. Flat integers would all be misread as indices.
     const ranges = buildRanges(changed);
     const ws = WLEDWebSocketService.getInstance();
+    const useRest = ws.isWsAvailable() !== true;
 
     for (const range of ranges) {
-      const payload: number[] = [range.start];
+      const payload: (number | string)[] = [range.start];
       for (let i = range.start; i <= range.end; i++) {
-        payload.push(buf[i * 3], buf[i * 3 + 1], buf[i * 3 + 2]);
+        payload.push(rgbToHex(buf[i * 3], buf[i * 3 + 1], buf[i * 3 + 2]));
       }
-      ws.send({
-        seg: [{ id: 0, i: payload }],
-      });
+      if (useRest) {
+        // REST fallback for firmware without WebSocket (hs-1.7) and native apps
+        const ip = connectionStore.getState().ip;
+        if (ip) {
+          fetch(`http://${ip}/json/state`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ seg: [{ id: 0, i: payload }] }),
+          }).catch(() => {});
+        }
+      } else {
+        ws.send({ seg: [{ id: 0, i: payload }] });
+      }
     }
 
     // Update last-sent state
@@ -95,29 +128,36 @@ export class WLEDPaintOutput {
   }
 
   /**
-   * Send full 480-LED frame to WLED, bypassing diff.
+   * Send full LED frame to WLED, bypassing diff.
    * Used for clear/fill operations.
-   * Sends in 2 chunks: 256 + 224 LEDs (WLED limit).
+   * 224 LEDs fits in a single chunk (under WLED's 256 limit).
    */
   sendAll(buffer: Uint8Array): void {
     const ws = WLEDWebSocketService.getInstance();
+    const useRest = ws.isWsAvailable() !== true;
 
-    // Chunk 1: LEDs 0-255
-    const chunk1: number[] = [0]; // start index
-    for (let i = 0; i < 256; i++) {
-      chunk1.push(buffer[i * 3], buffer[i * 3 + 1], buffer[i * 3 + 2]);
+    // 224 LEDs fits in a single chunk.
+    // Colors encoded as hex strings for WLED seg.i format.
+    const chunk: (number | string)[] = [0]; // start index
+    for (let i = 0; i < DEFAULT_LED_COUNT; i++) {
+      chunk.push(rgbToHex(buffer[i * 3], buffer[i * 3 + 1], buffer[i * 3 + 2]));
     }
-    ws.send({ seg: [{ id: 0, i: chunk1 }] });
-
-    // Chunk 2: LEDs 256-479
-    const chunk2: number[] = [256]; // start index
-    for (let i = 256; i < 480; i++) {
-      chunk2.push(buffer[i * 3], buffer[i * 3 + 1], buffer[i * 3 + 2]);
+    const payload = { seg: [{ id: 0, i: chunk }] };
+    if (useRest) {
+      const ip = connectionStore.getState().ip;
+      if (ip) {
+        fetch(`http://${ip}/json/state`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        }).catch(() => {});
+      }
+    } else {
+      ws.send(payload);
     }
-    ws.send({ seg: [{ id: 0, i: chunk2 }] });
 
     // Update last-sent state
-    this.lastSent.set(buffer);
+    this.lastSent.set(buffer.subarray(0, DEFAULT_FRAME_SIZE));
   }
 
   /**

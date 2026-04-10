@@ -50,8 +50,8 @@ describe('ColorPickerPanel', () => {
     render(<ColorPickerPanel />);
     const swatches = screen.getAllByRole('button', { name: /color/i });
     swatches.forEach((swatch) => {
-      expect(swatch).toHaveClass('min-h-11');
-      expect(swatch).toHaveClass('min-w-11');
+      expect(swatch).toHaveClass('min-h-12');
+      expect(swatch).toHaveClass('min-w-12');
     });
   });
 });

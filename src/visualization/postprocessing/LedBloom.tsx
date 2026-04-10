@@ -19,8 +19,8 @@ export function LedBloom() {
   return (
     <EffectComposer>
       <Bloom
-        intensity={1.5}
-        luminanceThreshold={0.5}
+        intensity={2.5}
+        luminanceThreshold={0.3}
         luminanceSmoothing={0.025}
         kernelSize={KernelSize.LARGE}
         mipmapBlur

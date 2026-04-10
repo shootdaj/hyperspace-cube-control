@@ -3,6 +3,7 @@ import { ManualPaintPlugin } from '@/plugins/inputs/ManualPaintPlugin';
 import { WLEDPaintOutput } from '@/plugins/outputs/WLEDPaintOutput';
 import { ledStateProxy } from '@/core/store/ledStateProxy';
 import { runPipelineTick, FRAME_INTERVAL_MS, type PipelineRefs } from '@/core/pipeline/PipelineEngine';
+import { DEFAULT_LED_COUNT, EDGE_LED_COUNTS } from '@/core/constants';
 import type { InputPlugin, MappingStrategy, OutputPlugin } from '@/core/pipeline/types';
 import type { MutableRefObject } from 'react';
 import { MockOutputPlugin } from '../mocks/mockPlugins';
@@ -13,6 +14,7 @@ vi.mock('@/core/wled/WLEDWebSocketService', () => ({
   WLEDWebSocketService: {
     getInstance: vi.fn(() => ({
       send: mockSend,
+      isWsAvailable: vi.fn(() => true),
     })),
   },
 }));
@@ -69,7 +71,7 @@ describe('Paint Pipeline Integration', () => {
     expect(ledStateProxy.colors[2]).toBe(64);
   });
 
-  it('TestPaintPipeline_SetEdge_Updates40Leds', () => {
+  it('TestPaintPipeline_SetEdge_UpdatesEdgeLeds', () => {
     plugin.setEdge(0, 200, 100, 50);
     const mockOutput = new MockOutputPlugin();
     const refs = makeRefs({
@@ -80,17 +82,18 @@ describe('Paint Pipeline Integration', () => {
 
     runPipelineTick(FRAME_INTERVAL_MS, refs);
 
-    // All 40 LEDs on edge 0 (indices 0-39) should be set
-    for (let i = 0; i < 40; i++) {
+    // All LEDs on edge 0 should be set (19 LEDs)
+    const ledsOnEdge = EDGE_LED_COUNTS[0];
+    for (let i = 0; i < ledsOnEdge; i++) {
       expect(ledStateProxy.colors[i * 3]).toBe(200);
       expect(ledStateProxy.colors[i * 3 + 1]).toBe(100);
       expect(ledStateProxy.colors[i * 3 + 2]).toBe(50);
     }
-    // LED 40 should be untouched
-    expect(ledStateProxy.colors[40 * 3]).toBe(0);
+    // Next LED should be untouched
+    expect(ledStateProxy.colors[ledsOnEdge * 3]).toBe(0);
   });
 
-  it('TestPaintPipeline_Fill_UpdatesAll480Leds', () => {
+  it('TestPaintPipeline_Fill_UpdatesAllLeds', () => {
     plugin.fill(255, 0, 0);
     const mockOutput = new MockOutputPlugin();
     const refs = makeRefs({
@@ -101,7 +104,7 @@ describe('Paint Pipeline Integration', () => {
 
     runPipelineTick(FRAME_INTERVAL_MS, refs);
 
-    for (let i = 0; i < 480; i++) {
+    for (let i = 0; i < DEFAULT_LED_COUNT; i++) {
       expect(ledStateProxy.colors[i * 3]).toBe(255);
       expect(ledStateProxy.colors[i * 3 + 1]).toBe(0);
       expect(ledStateProxy.colors[i * 3 + 2]).toBe(0);
@@ -117,10 +120,9 @@ describe('Paint Pipeline Integration', () => {
 
     expect(mockSend).toHaveBeenCalledTimes(1);
     const payload = mockSend.mock.calls[0][0];
-    expect(payload.seg[0].i[0]).toBe(42); // LED 42
-    expect(payload.seg[0].i[1]).toBe(255); // R
-    expect(payload.seg[0].i[2]).toBe(0);   // G
-    expect(payload.seg[0].i[3]).toBe(255); // B
+    expect(payload.seg[0].i[0]).toBe(42); // LED 42 (index)
+    // Color is hex string, not flat integers
+    expect(payload.seg[0].i[1]).toBe('ff00ff'); // RGB(255, 0, 255) as hex
 
     paintOutput.destroy();
   });
@@ -131,8 +133,8 @@ describe('Paint Pipeline Integration', () => {
     plugin.fill(100, 100, 100);
     paintOutput.sendAll(plugin.getBuffer());
 
-    // Should send 2 chunks (256 + 224)
-    expect(mockSend).toHaveBeenCalledTimes(2);
+    // Should send 1 chunk (224 LEDs fits in single WLED send)
+    expect(mockSend).toHaveBeenCalledTimes(1);
 
     paintOutput.destroy();
   });

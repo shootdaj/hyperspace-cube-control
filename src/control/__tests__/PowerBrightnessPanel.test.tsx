@@ -44,16 +44,16 @@ describe('PowerBrightnessPanel', () => {
 
   it('renders power toggle switch reflecting store state', () => {
     render(<PowerBrightnessPanel />);
-    const toggle = screen.getByRole('switch');
+    // Power is now a button with aria-label, not a switch
+    const toggle = screen.getByRole('button', { name: /turn off/i });
     expect(toggle).toBeInTheDocument();
-    expect(toggle).toHaveAttribute('aria-checked', 'true');
   });
 
   it('clicking toggle calls WLEDControlService.setPower with toggled value', async () => {
     cubeStateStore.setState({ on: true });
     render(<PowerBrightnessPanel />);
     const user = userEvent.setup();
-    const toggle = screen.getByRole('switch');
+    const toggle = screen.getByRole('button', { name: /turn off/i });
     await user.click(toggle);
     expect(mockSetPower).toHaveBeenCalledWith(false);
   });
@@ -75,7 +75,7 @@ describe('PowerBrightnessPanel', () => {
 
   it('renders power label', () => {
     render(<PowerBrightnessPanel />);
-    expect(screen.getByText('Power')).toBeInTheDocument();
+    expect(screen.getByText('Power & Brightness')).toBeInTheDocument();
   });
 
   it('renders brightness label', () => {

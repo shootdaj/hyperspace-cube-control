@@ -3,7 +3,8 @@ import { ManualPaintPlugin } from '@/plugins/inputs/ManualPaintPlugin';
 import { WLEDPaintOutput } from '@/plugins/outputs/WLEDPaintOutput';
 import { ledStateProxy } from '@/core/store/ledStateProxy';
 import { paintStore } from '@/stores/paintStore';
-import { getEdgeIndex, getEdgeFaces, getEdgeLedIndices, getFaceEdgeIndices } from '@/plugins/inputs/cubeTopology';
+import { getEdgeIndex, getEdgeFaces, getEdgeLedIndices, getFaceEdgeIndices, LED_COUNT } from '@/plugins/inputs/cubeTopology';
+import { getEdgeStartIndex } from '@/core/constants';
 
 // Mock WebSocket service
 const mockSend = vi.fn();
@@ -11,6 +12,7 @@ vi.mock('@/core/wled/WLEDWebSocketService', () => ({
   WLEDWebSocketService: {
     getInstance: vi.fn(() => ({
       send: mockSend,
+      isWsAvailable: vi.fn(() => true),
     })),
   },
 }));
@@ -95,7 +97,7 @@ describe('Manual Painting Scenarios', () => {
     output.sendAll(plugin.getBuffer());
 
     // 6. All LEDs should be black
-    for (let i = 0; i < 480 * 3; i++) {
+    for (let i = 0; i < LED_COUNT * 3; i++) {
       expect(ledStateProxy.colors[i]).toBe(0);
     }
   });
@@ -118,39 +120,42 @@ describe('Manual Painting Scenarios', () => {
     expect(ledStateProxy.colors[13 * 3]).toBe(0);
   });
 
-  it('TestManualPainting_BrushEdge_Paints40Leds', () => {
+  it('TestManualPainting_BrushEdge_PaintsEdgeLeds', () => {
     paintStore.setState({ brushSize: 'edge' });
 
-    // Click LED 50 (on edge 1: LEDs 40-79)
-    simulatePaint(plugin, output, 50);
+    // Click LED on edge 1 (edge 1 starts at index 19)
+    const edge1Start = getEdgeStartIndex(1);
+    simulatePaint(plugin, output, edge1Start + 2); // some LED on edge 1
 
-    // All 40 LEDs on edge 1 should be red
-    const edgeLeds = getEdgeLedIndices(1); // edge of LED 50
+    // All LEDs on edge 1 should be red
+    const edgeLeds = getEdgeLedIndices(1);
     for (const idx of edgeLeds) {
       expect(ledStateProxy.colors[idx * 3]).toBe(255);
     }
 
-    // LED 39 (edge 0) should be untouched
-    expect(ledStateProxy.colors[39 * 3]).toBe(0);
-    // LED 80 (edge 2) should be untouched
-    expect(ledStateProxy.colors[80 * 3]).toBe(0);
+    // Last LED on edge 0 should be untouched
+    expect(ledStateProxy.colors[(edge1Start - 1) * 3]).toBe(0);
+    // First LED on edge 2 should be untouched
+    const edge2Start = getEdgeStartIndex(2);
+    expect(ledStateProxy.colors[edge2Start * 3]).toBe(0);
   });
 
-  it('TestManualPainting_BrushFace_Paints160Leds', () => {
+  it('TestManualPainting_BrushFace_PaintsFaceLeds', () => {
     paintStore.setState({ brushSize: 'face' });
 
     // Click LED 0 (on edge 0, which belongs to face 0=bottom and face 2=front)
     simulatePaint(plugin, output, 0);
 
-    // Face 0 (bottom) has edges 0,1,2,3 = 160 LEDs
+    // Face 0 (bottom) has edges 0,1,2,3 (19 LEDs each = 76 LEDs)
     const faceLeds = getFaceEdgeIndices(0);
-    expect(faceLeds).toHaveLength(160);
+    expect(faceLeds).toHaveLength(76);
     for (const idx of faceLeds) {
       expect(ledStateProxy.colors[idx * 3]).toBe(255);
     }
 
-    // LED 160 (edge 4, not on bottom face) should be untouched
-    expect(ledStateProxy.colors[160 * 3]).toBe(0);
+    // First LED on edge 4 (not on bottom face) should be untouched
+    const edge4Start = getEdgeStartIndex(4);
+    expect(ledStateProxy.colors[edge4Start * 3]).toBe(0);
   });
 
   it('TestManualPainting_ColorChange_UsesNewColor', () => {
@@ -176,11 +181,11 @@ describe('Manual Painting Scenarios', () => {
     ledStateProxy.colors.set(plugin.getBuffer());
     output.sendAll(plugin.getBuffer());
 
-    // 2 chunks for 480 LEDs
-    expect(mockSend).toHaveBeenCalledTimes(2);
+    // 1 chunk for 224 LEDs (fits in single WLED send)
+    expect(mockSend).toHaveBeenCalledTimes(1);
 
     // Verify all LEDs
-    for (let i = 0; i < 480; i++) {
+    for (let i = 0; i < LED_COUNT; i++) {
       expect(ledStateProxy.colors[i * 3]).toBe(0);
       expect(ledStateProxy.colors[i * 3 + 1]).toBe(128);
       expect(ledStateProxy.colors[i * 3 + 2]).toBe(255);

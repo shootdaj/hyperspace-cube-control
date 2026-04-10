@@ -8,6 +8,10 @@ import { midiStore, type CCMapping, type NoteMapping } from '@/stores/midiStore'
 import { cubeStateStore } from '@/core/store/cubeStateStore';
 import { presetStore } from '@/core/store/presetStore';
 import { connectionStore } from '@/core/store/connectionStore';
+import { WLEDControlService } from '@/core/wled/WLEDControlService';
+import { ledStateProxy } from '@/core/store/ledStateProxy';
+import { DEFAULT_LED_COUNT } from '@/core/constants';
+
 
 /**
  * Maps a raw CC value (0-127) to a parameter's native range.
@@ -94,24 +98,99 @@ export function handleCCMessage(channel: number, cc: number, rawValue: number): 
  * Apply a mapped parameter value to the cube state.
  */
 export function applyCCParameter(target: CCMapping['target'], value: number): void {
+  const ip = connectionStore.getState().ip;
+  const service = ip ? WLEDControlService.getInstance(ip) : null;
+
   switch (target) {
     case 'brightness':
       cubeStateStore.getState().setBrightness(value);
+      service?.setBrightness(value);
       break;
     case 'speed':
       cubeStateStore.getState().setSpeed(value);
+      service?.setSpeed(value);
       break;
     case 'intensity':
       cubeStateStore.getState().setIntensity(value);
+      service?.setIntensity(value);
       break;
     case 'hue': {
       const [r, g, b] = hueToRGB(value);
       const colors = [...cubeStateStore.getState().colors];
       colors[0] = [r, g, b];
       cubeStateStore.getState().setColors(colors);
+      service?.setColors(colors);
       break;
     }
   }
+}
+
+/**
+ * Handle a drum pad note-on: fills all 224 LEDs with the pad's color.
+ * Returns true if the note was consumed by a drum pad, false otherwise.
+ */
+export function handleDrumPadNoteOn(_channel: number, note: number, _velocity: number): boolean {
+  const state = midiStore.getState();
+  const padIndex = state.padNoteMap.indexOf(note);
+  if (padIndex === -1) return false;
+
+  const [r, g, b] = state.padColors[padIndex];
+
+  // Update local visualization
+  const colors = ledStateProxy.colors;
+  for (let i = 0; i < DEFAULT_LED_COUNT; i++) {
+    colors[i * 3] = r;
+    colors[i * 3 + 1] = g;
+    colors[i * 3 + 2] = b;
+  }
+  ledStateProxy.lastUpdated = performance.now();
+
+  // Fire REST directly to cube — bypasses sACN for instant response
+  const ip = connectionStore.getState().ip;
+    if (ip) {
+      fetch(`http://${ip}/json/state`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ on: true, bri: 255, seg: [{ col: [[r, g, b]] }] }),
+    }).catch(() => {});
+  }
+
+  return true;
+}
+
+/**
+ * Handle a drum pad note-off: clears all LEDs to black if hold mode is off.
+ */
+export function handleDrumPadNoteOff(note: number): void {
+  const state = midiStore.getState();
+  if (state.padHoldMode) return;
+  const padIndex = state.padNoteMap.indexOf(note);
+  if (padIndex === -1) return;
+
+  const colors = ledStateProxy.colors;
+  for (let i = 0; i < DEFAULT_LED_COUNT; i++) {
+    colors[i * 3] = 0;
+    colors[i * 3 + 1] = 0;
+    colors[i * 3 + 2] = 0;
+  }
+  ledStateProxy.lastUpdated = performance.now();
+
+  // Direct REST for instant response
+  const ip = connectionStore.getState().ip;
+    if (ip) {
+      fetch(`http://${ip}/json/state`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ seg: [{ col: [[0, 0, 0]] }] }),
+    }).catch(() => {});
+  }
+}
+
+/**
+ * Handle note-off messages from MIDI inputs.
+ */
+export function handleNoteOffMessage(_channel: number, note: number): void {
+  handleDrumPadNoteOff(note);
 }
 
 /**
@@ -120,6 +199,18 @@ export function applyCCParameter(target: CCMapping['target'], value: number): vo
  */
 export function handleNoteOnMessage(channel: number, note: number, _velocity: number): void {
   const state = midiStore.getState();
+
+  // Pad learn mode: assign the incoming note to the selected pad
+  if (state.padLearnIndex !== null) {
+    midiStore.getState().setPadNote(state.padLearnIndex, note);
+    midiStore.getState().setPadLearnIndex(null);
+    return;
+  }
+
+  // Drum pad note-on: fills all LEDs with pad color
+  if (handleDrumPadNoteOn(channel, note, _velocity)) {
+    return;
+  }
 
   // MIDI Learn mode: capture the note and bind it to the learn target
   if (state.learnTarget && state.learnTarget.type === 'note') {

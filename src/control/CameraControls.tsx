@@ -5,6 +5,7 @@ import { Separator } from '@/components/ui/separator';
 import { Slider } from '@/components/ui/slider';
 import { cameraStore } from '@/stores/cameraStore';
 import { cameraPlugin } from '@/plugins/inputs/cameraSingleton';
+import { DEFAULT_LED_COUNT } from '@/core/constants';
 
 /**
  * CameraControls — UI panel for webcam motion-reactive LED input.
@@ -25,6 +26,8 @@ export function CameraControls() {
 
   const handleEnableCamera = useCallback(async () => {
     try {
+      // Initialize the worker (idempotent — safe to call multiple times)
+      await cameraPlugin.initialize({ ledCount: DEFAULT_LED_COUNT, frameRate: 30 });
       await cameraPlugin.getDevices();
       const deviceId = cameraStore.getState().selectedDeviceId ?? undefined;
       await cameraPlugin.startCamera(deviceId);

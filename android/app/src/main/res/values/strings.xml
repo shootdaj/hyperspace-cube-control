@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">HyperCube</string>
+    <string name="title_activity_main">HyperCube</string>
+    <string name="package_name">com.hypercube.control</string>
+    <string name="custom_url_scheme">com.hypercube.control</string>
+</resources>

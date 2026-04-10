@@ -4,6 +4,7 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { videoStore } from '@/stores/videoStore';
 import { videoPlugin } from '@/plugins/inputs/videoSingleton';
+import { DEFAULT_LED_COUNT } from '@/core/constants';
 import type { MappingStrategyType } from '@/workers/videoWorkerTypes';
 
 const STRATEGIES: { value: MappingStrategyType; label: string; description: string }[] = [
@@ -32,6 +33,9 @@ export function VideoControls() {
     if (!file) return;
 
     try {
+      // Initialize the worker (idempotent — safe to call multiple times)
+      await videoPlugin.initialize({ ledCount: DEFAULT_LED_COUNT, frameRate: 30 });
+
       const isVideo = file.type.startsWith('video/');
       const isImage = file.type.startsWith('image/');
 
@@ -67,7 +71,7 @@ export function VideoControls() {
   const handleUnload = useCallback(() => {
     videoPlugin.destroy();
     // Re-initialize for next use
-    videoPlugin.initialize({ ledCount: 480, frameRate: 30 }).catch(console.error);
+    videoPlugin.initialize({ ledCount: DEFAULT_LED_COUNT, frameRate: 30 }).catch(console.error);
   }, []);
 
   return (

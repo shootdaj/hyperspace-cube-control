@@ -7,6 +7,7 @@ import { videoStore } from '@/stores/videoStore';
 import { cameraStore } from '@/stores/cameraStore';
 import { runPipelineTick, FRAME_INTERVAL_MS, type PipelineRefs } from '@/core/pipeline/PipelineEngine';
 import { ledStateProxy } from '@/core/store/ledStateProxy';
+import { DEFAULT_LED_COUNT, DEFAULT_FRAME_SIZE } from '@/core/constants';
 import type { InputPlugin, MappingStrategy, OutputPlugin } from '@/core/pipeline/types';
 import type { MutableRefObject } from 'react';
 import { MockOutputPlugin } from '../mocks/mockPlugins';
@@ -58,10 +59,10 @@ describe('Video & Camera Full Workflow', () => {
     // Step 1: User opens Video tab and loads a video
     const mockWorker = new MockWorker();
     const videoPlugin = new VideoPlugin(mockWorker as unknown as Worker);
-    await videoPlugin.initialize({ ledCount: 480, frameRate: 30 });
+    await videoPlugin.initialize({ ledCount: DEFAULT_LED_COUNT, frameRate: 30 });
 
     // Simulate video loaded (in real scenario, loadVideo would set this up)
-    const testLeds = new Uint8Array(480 * 3);
+    const testLeds = new Uint8Array(DEFAULT_FRAME_SIZE);
     for (let i = 0; i < testLeds.length; i++) {
       testLeds[i] = (i * 3) % 256;
     }
@@ -125,7 +126,7 @@ describe('Video & Camera Full Workflow', () => {
     // Step 1: User clicks "Enable Camera"
     const mockWorker = new MockWorker();
     const cameraPlugin = new CameraPlugin(mockWorker as unknown as Worker);
-    await cameraPlugin.initialize({ ledCount: 480, frameRate: 30 });
+    await cameraPlugin.initialize({ ledCount: DEFAULT_LED_COUNT, frameRate: 30 });
 
     // Step 2: Simulate successful camera start
     const mockTrack = { stop: vi.fn(), kind: 'video' };
@@ -166,7 +167,7 @@ describe('Video & Camera Full Workflow', () => {
   it('TestCameraWorkflow_CameraPermissionDeniedShowsGuidance', async () => {
     const mockWorker = new MockWorker();
     const cameraPlugin = new CameraPlugin(mockWorker as unknown as Worker);
-    await cameraPlugin.initialize({ ledCount: 480, frameRate: 30 });
+    await cameraPlugin.initialize({ ledCount: DEFAULT_LED_COUNT, frameRate: 30 });
 
     // Simulate permission denial
     vi.stubGlobal('navigator', {
@@ -196,14 +197,14 @@ describe('Video & Camera Full Workflow', () => {
     const cameraWorker = new MockWorker();
     const videoPlugin = new VideoPlugin(videoWorker as unknown as Worker);
     const cameraPlugin = new CameraPlugin(cameraWorker as unknown as Worker);
-    await videoPlugin.initialize({ ledCount: 480, frameRate: 30 });
-    await cameraPlugin.initialize({ ledCount: 480, frameRate: 30 });
+    await videoPlugin.initialize({ ledCount: DEFAULT_LED_COUNT, frameRate: 30 });
+    await cameraPlugin.initialize({ ledCount: DEFAULT_LED_COUNT, frameRate: 30 });
 
     const mapping = new EdgeSamplingStrategy();
     const mockOutput = new MockOutputPlugin();
 
     // Set up video with test data
-    const videoLeds = new Uint8Array(480 * 3);
+    const videoLeds = new Uint8Array(DEFAULT_FRAME_SIZE);
     videoLeds.fill(100);
     (videoPlugin as unknown as { latestLeds: Uint8Array }).latestLeds = videoLeds;
     (videoPlugin as unknown as { isImage: boolean }).isImage = true;
@@ -249,12 +250,12 @@ describe('Video & Camera Full Workflow', () => {
     expect(edgeStrategy.id).not.toBe(faceStrategy.id);
 
     // Both should handle the same input
-    const leds = new Uint8Array(480 * 3);
+    const leds = new Uint8Array(DEFAULT_FRAME_SIZE);
     leds.fill(42);
     const frame = { type: 'direct' as const, leds };
 
-    const edgeResult = edgeStrategy.map(frame, 480);
-    const faceResult = faceStrategy.map(frame, 480);
+    const edgeResult = edgeStrategy.map(frame, DEFAULT_LED_COUNT);
+    const faceResult = faceStrategy.map(frame, DEFAULT_LED_COUNT);
 
     // For passthrough data, results should be identical
     expect(edgeResult.length).toBe(faceResult.length);

@@ -1,6 +1,6 @@
-import { useRef } from 'react';
+import { useRef, useMemo } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { OrbitControls } from '@react-three/drei';
+import { OrbitControls, Grid } from '@react-three/drei';
 import * as THREE from 'three';
 import { CubeMesh } from './CubeMesh';
 import { LedBloom } from './postprocessing/LedBloom';
@@ -56,6 +56,31 @@ function PaintAwareControls() {
 }
 
 /**
+ * GridFloor — faint grid plane under the cube for spatial grounding.
+ * Uses drei's Grid component for clean infinite-grid look.
+ */
+function GridFloor() {
+  const gridColor = useMemo(() => new THREE.Color(0.15, 0.18, 0.25), []);
+  const cellColor = useMemo(() => new THREE.Color(0.08, 0.1, 0.15), []);
+  return (
+    <Grid
+      position={[0, -0.52, 0]}
+      args={[10, 10]}
+      cellSize={0.1}
+      cellThickness={0.4}
+      cellColor={cellColor}
+      sectionSize={0.5}
+      sectionThickness={0.8}
+      sectionColor={gridColor}
+      fadeDistance={4}
+      fadeStrength={1.5}
+      followCamera={false}
+      infiniteGrid
+    />
+  );
+}
+
+/**
  * CubeScene — R3F Canvas shell. Camera, ambient light, OrbitControls.
  *
  * IMPORTANT: Never unmount this component to hide it — use CSS display:none.
@@ -73,9 +98,20 @@ export function CubeScene() {
       gl={{ antialias: true, toneMapping: 0 }}
       style={{ width: '100%', height: '100%', cursor: isPaintMode ? 'crosshair' : 'grab' }}
     >
-      <ambientLight intensity={0.05} />
+      {/* Dark gradient background — not pure black */}
+      <color attach="background" args={['#06060f']} />
+      <fog attach="fog" args={['#06060f', 3, 8]} />
+
+      {/* Lighting — brighter ambient + subtle directional fill */}
+      <ambientLight intensity={0.5} />
+      <directionalLight position={[2, 3, 1]} intensity={0.15} color="#8888cc" />
+
       <PaintAwareControls />
       <RendererMonitor />
+
+      {/* Grid floor for spatial grounding */}
+      <GridFloor />
+
       <CubeMesh />
       <LedBloom />
     </Canvas>

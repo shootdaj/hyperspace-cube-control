@@ -4,7 +4,7 @@
  */
 export interface FrameData {
   type: 'direct' | 'video' | 'audio' | 'midi';
-  /** 'direct': 480x3 RGB bytes (flat array, index i -> [r, g, b] at i*3, i*3+1, i*3+2) */
+  /** 'direct': ledCount*3 RGB bytes (flat array, index i -> [r, g, b] at i*3, i*3+1, i*3+2) */
   leds?: Uint8Array;
   /** 'video': OffscreenCanvas with current frame drawn -- MappingStrategy samples from this */
   canvas?: OffscreenCanvas;
@@ -18,7 +18,7 @@ export interface FrameData {
  * Context injected into plugins at initialize() time.
  */
 export interface PluginContext {
-  /** Number of LEDs in the cube -- 480 for HyperCube 15-SE */
+  /** Number of LEDs in the cube -- 224 for HyperCube 15-SE */
   ledCount: number;
   /** Target pipeline frame rate */
   frameRate: number;
@@ -38,7 +38,7 @@ export interface InputPlugin {
 }
 
 /**
- * Converts a FrameData payload into a flat 480x3 RGB byte array.
+ * Converts a FrameData payload into a flat ledCount*3 RGB byte array.
  * Stateless -- must produce the same output for the same input.
  */
 export interface MappingStrategy {
@@ -53,7 +53,7 @@ export interface MappingStrategy {
  */
 export interface OutputPlugin {
   readonly id: string;
-  /** @param leds - Uint8Array of length 480*3 RGB bytes */
+  /** @param leds - Uint8Array of length ledCount*3 RGB bytes */
   send(leds: Uint8Array, brightness: number): void;
   destroy(): void;
 }

@@ -1,7 +1,7 @@
 import * as THREE from 'three';
+import { EDGE_COUNT, EDGE_LED_COUNTS, DEFAULT_LED_COUNT } from '@/core/constants';
 
-export const LEDS_PER_EDGE = 40;
-export const EDGE_COUNT = 12;
+export { EDGE_COUNT, DEFAULT_LED_COUNT as LED_COUNT };
 
 const HALF = 0.5;
 
@@ -26,23 +26,25 @@ const EDGES: [number, number][] = [
 ];
 
 /**
- * Returns 480 Vector3 LED positions in edge-major order.
- * LED index = edgeIndex * LEDS_PER_EDGE + positionOnEdge.
+ * Returns 224 Vector3 LED positions in edge-major order.
  *
- * LEDs are evenly spaced within each edge. t=(j+0.5)/LEDS_PER_EDGE
- * places the first LED at 1.25% along the edge (not at the corner vertex).
+ * HyperCube 15-SE has 224 LEDs across 12 edges:
+ * - Edges 0-7 (bottom + top): 19 LEDs each
+ * - Edges 8-11 (vertical): 18 LEDs each
+ *
+ * LEDs are evenly spaced within each edge. t=(j+0.5)/ledsOnEdge
+ * places the first LED at a small offset along the edge (not at the corner vertex).
  * This matches physical LED strip behavior (LED center, not strip end).
- *
- * NOTE: Physical wiring order on HC15-SE may differ. A LED_ORDER_MAPPING
- * constant can be added once validated against hardware (see open question in RESEARCH.md).
  */
 export function computeLEDPositions(): THREE.Vector3[] {
   const positions: THREE.Vector3[] = [];
-  for (const [startIdx, endIdx] of EDGES) {
+  for (let edgeIdx = 0; edgeIdx < EDGES.length; edgeIdx++) {
+    const [startIdx, endIdx] = EDGES[edgeIdx];
     const start = V[startIdx];
     const end = V[endIdx];
-    for (let j = 0; j < LEDS_PER_EDGE; j++) {
-      const t = (j + 0.5) / LEDS_PER_EDGE;
+    const ledsOnEdge = EDGE_LED_COUNTS[edgeIdx];
+    for (let j = 0; j < ledsOnEdge; j++) {
+      const t = (j + 0.5) / ledsOnEdge;
       positions.push(new THREE.Vector3().lerpVectors(start, end, t));
     }
   }

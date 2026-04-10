@@ -8,9 +8,9 @@
  * Pure functions, no DOM/Worker dependency — fully unit-testable.
  */
 
-const LEDS_PER_EDGE = 40;
-const EDGE_COUNT = 12;
-const LED_COUNT = EDGE_COUNT * LEDS_PER_EDGE; // 480
+import { EDGE_COUNT, EDGE_LED_COUNTS, DEFAULT_LED_COUNT, getEdgeStartIndex } from '@/core/constants';
+
+const LED_COUNT = DEFAULT_LED_COUNT;
 
 /**
  * Compute motion map from two consecutive frames.
@@ -58,7 +58,7 @@ export function computeMotion(
 }
 
 /**
- * Map motion data to 480 LED colors.
+ * Map motion data to 224 LED colors.
  *
  * Divides the motion map into a grid matching the cube's edge layout,
  * then maps average motion intensity in each region to LED brightness.
@@ -69,7 +69,7 @@ export function computeMotion(
  * @param motionLevel - Overall motion level (0-1)
  * @param width - Frame width
  * @param height - Frame height
- * @returns Uint8Array of 480*3 RGB bytes
+ * @returns Uint8Array of LED_COUNT*3 RGB bytes
  */
 export function mapMotionToLeds(
   motionMap: Uint8Array,
@@ -80,14 +80,15 @@ export function mapMotionToLeds(
   const result = new Uint8Array(LED_COUNT * 3);
 
   // Divide frame into 12 horizontal strips (one per edge)
-  // Then sample 40 positions within each strip
+  // Then sample variable positions within each strip
   for (let edge = 0; edge < EDGE_COUNT; edge++) {
+    const ledsOnEdge = EDGE_LED_COUNTS[edge];
     const stripTop = Math.floor((edge / EDGE_COUNT) * height);
     const stripBottom = Math.floor(((edge + 1) / EDGE_COUNT) * height);
 
-    for (let led = 0; led < LEDS_PER_EDGE; led++) {
-      const colStart = Math.floor((led / LEDS_PER_EDGE) * width);
-      const colEnd = Math.floor(((led + 1) / LEDS_PER_EDGE) * width);
+    for (let led = 0; led < ledsOnEdge; led++) {
+      const colStart = Math.floor((led / ledsOnEdge) * width);
+      const colEnd = Math.floor(((led + 1) / ledsOnEdge) * width);
 
       // Average motion intensity in this cell
       let sum = 0;
@@ -107,7 +108,7 @@ export function mapMotionToLeds(
       const g = Math.round(brightness * 220);
       const b = Math.round(brightness * 255);
 
-      const outIdx = (edge * LEDS_PER_EDGE + led) * 3;
+      const outIdx = (getEdgeStartIndex(edge) + led) * 3;
       result[outIdx] = r;
       result[outIdx + 1] = g;
       result[outIdx + 2] = b;

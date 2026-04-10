@@ -30,7 +30,7 @@ describe('ConnectionStatus', () => {
   it('TestConnectionStatus_Disconnected_ShowsDisconnectedLabel', () => {
     connectionStore.setState({ status: 'disconnected' });
     render(<ConnectionStatus />);
-    expect(screen.getByText('Disconnected')).toBeInTheDocument();
+    expect(screen.getByText('Offline')).toBeInTheDocument();
   });
 
   it('TestConnectionStatus_DataStatus_MatchesStoreStatus', () => {
@@ -43,7 +43,7 @@ describe('ConnectionStatus', () => {
   it('TestConnectionStatus_StatusChange_CausesRerender', () => {
     connectionStore.setState({ status: 'disconnected' });
     const { rerender } = render(<ConnectionStatus />);
-    expect(screen.getByText('Disconnected')).toBeInTheDocument();
+    expect(screen.getByText('Offline')).toBeInTheDocument();
 
     connectionStore.setState({ status: 'connected' });
     rerender(<ConnectionStatus />);

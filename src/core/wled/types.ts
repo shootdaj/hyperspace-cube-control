@@ -1,20 +1,29 @@
-/** Full /json/info response shape (hs-1.6 firmware) */
+/** Full /json/info response shape (hs-1.6 / hs-1.7 firmware) */
 export interface WLEDInfo {
   ver: string;
   vid: number;
   leds: {
     count: number;
-    pwr: number;
-    fps: number;
-    maxpwr: number;
-    maxseg: number;
+    pwr?: number;
+    fps?: number;
+    maxpwr?: number;
+    maxseg?: number;
+    rgbw?: boolean;
+    pin?: number[];
   };
   name: string;
-  udpport: number;
-  live: boolean;
-  fxcount: number;
-  palcount: number;
-  wifi: {
+  udpport?: number;
+  live?: boolean;
+  fxcount?: number;
+  palcount?: number;
+  brand?: string;
+  product?: string;
+  arch?: string;
+  core?: string;
+  freeheap?: number;
+  uptime?: number;
+  mac?: string;
+  wifi?: {
     bssid: string;
     rssi: number;
     signal: number;

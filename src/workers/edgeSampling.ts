@@ -1,6 +1,6 @@
 /**
  * Edge sampling logic — samples pixel colors at positions corresponding to
- * the 12 cube edges (40 LEDs each = 480 total).
+ * the 12 cube edges (224 LEDs total, variable per edge).
  *
  * Pure functions, no DOM/Worker dependency — fully unit-testable.
  *
@@ -13,9 +13,9 @@
  * then scaled to pixel coordinates for sampling.
  */
 
-const LEDS_PER_EDGE = 40;
-const EDGE_COUNT = 12;
-const LED_COUNT = EDGE_COUNT * LEDS_PER_EDGE; // 480
+import { EDGE_COUNT, EDGE_LED_COUNTS, DEFAULT_LED_COUNT, getEdgeStartIndex } from '@/core/constants';
+
+const LED_COUNT = DEFAULT_LED_COUNT;
 
 /**
  * A line segment in normalized [0,1] coordinates.
@@ -71,16 +71,16 @@ export function samplePixel(
 }
 
 /**
- * Sample 480 LED colors using edge-sampling strategy.
+ * Sample 224 LED colors using edge-sampling strategy.
  *
- * For each of the 12 edges, linearly interpolate 40 sample points along
+ * For each of the 12 edges, linearly interpolate sample points along
  * the edge's line segment, read the pixel color at each point, and write
  * to the output array.
  *
  * @param imageData - RGBA pixel data from getImageData()
  * @param width - Image width in pixels
  * @param height - Image height in pixels
- * @returns Uint8Array of 480*3 RGB bytes
+ * @returns Uint8Array of LED_COUNT*3 RGB bytes
  */
 export function sampleEdges(
   imageData: Uint8ClampedArray,
@@ -93,9 +93,10 @@ export function sampleEdges(
     const line = EDGE_LINES[edge];
     const [sx, sy] = line.start;
     const [ex, ey] = line.end;
+    const ledsOnEdge = EDGE_LED_COUNTS[edge];
 
-    for (let led = 0; led < LEDS_PER_EDGE; led++) {
-      const t = led / (LEDS_PER_EDGE - 1);
+    for (let led = 0; led < ledsOnEdge; led++) {
+      const t = ledsOnEdge > 1 ? led / (ledsOnEdge - 1) : 0.5;
       const nx = sx + (ex - sx) * t;
       const ny = sy + (ey - sy) * t;
 
@@ -104,7 +105,7 @@ export function sampleEdges(
 
       const [r, g, b] = samplePixel(imageData, width, height, px, py);
 
-      const outIdx = (edge * LEDS_PER_EDGE + led) * 3;
+      const outIdx = (getEdgeStartIndex(edge) + led) * 3;
       result[outIdx] = r;
       result[outIdx + 1] = g;
       result[outIdx + 2] = b;

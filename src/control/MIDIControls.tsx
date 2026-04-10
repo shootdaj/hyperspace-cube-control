@@ -1,13 +1,28 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import { HexColorPicker } from 'react-colorful';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
+import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import { midiStore, type CCMapping, type NoteMapping } from '@/stores/midiStore';
 import { isMIDISupported, getMIDIUnsupportedMessage } from '@/plugins/inputs/midiSupport';
 import { midiPlugin } from '@/plugins/inputs/midiSingleton';
 import { saveMIDIMappings, loadMIDIMappings, clearSavedMIDIMappings } from '@/plugins/inputs/midiPersistence';
 import { presetStore } from '@/core/store/presetStore';
 import { effectPaletteStore } from '@/core/store/effectPaletteStore';
+
+function rgbToHex(r: number, g: number, b: number): string {
+  return '#' + [r, g, b].map((c) => Math.max(0, Math.min(255, c)).toString(16).padStart(2, '0')).join('');
+}
+
+function hexToRgb(hex: string): [number, number, number] {
+  const clean = hex.replace('#', '');
+  return [
+    parseInt(clean.slice(0, 2), 16),
+    parseInt(clean.slice(2, 4), 16),
+    parseInt(clean.slice(4, 6), 16),
+  ];
+}
 
 const CC_TARGETS: Array<{ value: CCMapping['target']; label: string; description: string }> = [
   { value: 'brightness', label: 'Brightness', description: 'LED brightness (0-255)' },
@@ -35,6 +50,11 @@ export function MIDIControls() {
   const error = midiStore((s) => s.error);
   const presets = presetStore((s) => s.presets);
   const effects = effectPaletteStore((s) => s.effects);
+  const padColors = midiStore((s) => s.padColors);
+  const padNoteMap = midiStore((s) => s.padNoteMap);
+  const padHoldMode = midiStore((s) => s.padHoldMode);
+  const padLearnIndex = midiStore((s) => s.padLearnIndex);
+  const [padColorPopover, setPadColorPopover] = useState<number | null>(null);
 
   // Check MIDI support on mount and load saved mappings
   useEffect(() => {
@@ -242,6 +262,76 @@ export function MIDIControls() {
                   </div>
                 );
               })}
+            </div>
+          </div>
+
+          <Separator className="bg-border" />
+
+          {/* Drum Pad Colors */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Drum Pad Colors</Label>
+            <p className="text-xs text-muted-foreground">Trigger pad notes to flash all LEDs with a color. Click square to change color.</p>
+            <div className="grid grid-cols-4 gap-2">
+              {padColors.map((color, i) => {
+                const isLearning = padLearnIndex === i;
+                const hex = rgbToHex(color[0], color[1], color[2]);
+                return (
+                  <div key={i} className="flex flex-col items-center gap-1">
+                    <Popover
+                      open={padColorPopover === i}
+                      onOpenChange={(open) => setPadColorPopover(open ? i : null)}
+                    >
+                      <PopoverTrigger
+                        aria-label={`Pad ${i + 1} color`}
+                        className={`min-h-11 min-w-11 w-full rounded-md border-2 cursor-pointer transition-all ${
+                          isLearning
+                            ? 'border-amber-500 animate-pulse'
+                            : 'border-border hover:border-primary/50'
+                        }`}
+                        style={{ backgroundColor: hex }}
+                      />
+                      <PopoverContent className="w-auto p-3" align="start">
+                        <HexColorPicker
+                          color={hex}
+                          onChange={(newHex) => midiStore.getState().setPadColor(i, hexToRgb(newHex))}
+                        />
+                      </PopoverContent>
+                    </Popover>
+                    <span className="text-[10px] font-mono text-muted-foreground">N{padNoteMap[i]}</span>
+                    <Button
+                      aria-label={`Learn pad ${i + 1}`}
+                      variant={isLearning ? 'default' : 'outline'}
+                      size="sm"
+                      className={`min-h-7 h-7 text-[10px] px-2 w-full ${
+                        isLearning
+                          ? 'bg-amber-600 hover:bg-amber-700 text-white'
+                          : 'border-border text-muted-foreground'
+                      }`}
+                      onClick={() => midiStore.getState().setPadLearnIndex(isLearning ? null : i)}
+                    >
+                      {isLearning ? 'Cancel' : 'Learn'}
+                    </Button>
+                  </div>
+                );
+              })}
+            </div>
+            <div className="flex items-center gap-2 pt-1">
+              <button
+                aria-label="Hold Mode"
+                role="checkbox"
+                aria-checked={padHoldMode}
+                className={`h-4 w-4 rounded border cursor-pointer transition-colors ${
+                  padHoldMode ? 'bg-primary border-primary' : 'border-border'
+                }`}
+                onClick={() => midiStore.getState().setPadHoldMode(!padHoldMode)}
+              >
+                {padHoldMode && (
+                  <svg viewBox="0 0 12 12" className="w-full h-full text-primary-foreground">
+                    <path d="M3 6l2 2 4-4" stroke="currentColor" strokeWidth="2" fill="none" />
+                  </svg>
+                )}
+              </button>
+              <span className="text-xs text-muted-foreground">Hold Mode (keep color after release)</span>
             </div>
           </div>
 

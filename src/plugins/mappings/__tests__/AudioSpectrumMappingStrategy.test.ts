@@ -8,6 +8,9 @@ import {
 } from '../AudioSpectrumMappingStrategy';
 import type { FrameData } from '@/core/pipeline/types';
 import { audioStore } from '@/stores/audioStore';
+import { DEFAULT_LED_COUNT, EDGE_LED_COUNTS, getEdgeStartIndex } from '@/core/constants';
+
+const LED = DEFAULT_LED_COUNT;
 
 describe('hslToRgb', () => {
   it('TestHslToRgb_Red', () => {
@@ -120,8 +123,8 @@ describe('AudioSpectrumMappingStrategy', () => {
 
   it('TestAudioMapping_NoSpectrum_ReturnsAllBlack', () => {
     const frame: FrameData = { type: 'audio' }; // No spectrum
-    const result = strategy.map(frame, 480);
-    expect(result.length).toBe(480 * 3);
+    const result = strategy.map(frame, LED);
+    expect(result.length).toBe(LED * 3);
     for (let i = 0; i < result.length; i++) {
       expect(result[i]).toBe(0);
     }
@@ -131,8 +134,8 @@ describe('AudioSpectrumMappingStrategy', () => {
     const spectrum = new Float32Array(1024).fill(0.5);
     const frame: FrameData = { type: 'audio', spectrum };
 
-    const result = strategy.map(frame, 480);
-    expect(result.length).toBe(480 * 3);
+    const result = strategy.map(frame, LED);
+    expect(result.length).toBe(LED * 3);
   });
 
   it('TestAudioMapping_SpectrumMode_EdgesHaveDifferentColors', () => {
@@ -146,13 +149,13 @@ describe('AudioSpectrumMappingStrategy', () => {
     for (let i = 500; i < 1024; i++) spectrum[i] = 0.1;
 
     const frame: FrameData = { type: 'audio', spectrum };
-    const result = strategy.map(frame, 480);
+    const result = strategy.map(frame, LED);
 
     // Edge 0 (bass) should be different from edge 11 (highs)
     const edge0R = result[0];
     const edge0G = result[1];
     const edge0B = result[2];
-    const edge11Start = 11 * 40 * 3;
+    const edge11Start = getEdgeStartIndex(11) * 3;
     const edge11R = result[edge11Start];
     const edge11G = result[edge11Start + 1];
     const edge11B = result[edge11Start + 2];
@@ -165,13 +168,14 @@ describe('AudioSpectrumMappingStrategy', () => {
   it('TestAudioMapping_SpectrumMode_AllLedsOnEdgeSameColor', () => {
     const spectrum = new Float32Array(1024).fill(0.5);
     const frame: FrameData = { type: 'audio', spectrum };
-    const result = strategy.map(frame, 480);
+    const result = strategy.map(frame, LED);
 
-    // All 40 LEDs on edge 0 should have the same color
+    // All LEDs on edge 0 should have the same color
+    const ledsOnEdge0 = EDGE_LED_COUNTS[0];
     const r0 = result[0];
     const g0 = result[1];
     const b0 = result[2];
-    for (let led = 1; led < 40; led++) {
+    for (let led = 1; led < ledsOnEdge0; led++) {
       const offset = led * 3;
       expect(result[offset]).toBe(r0);
       expect(result[offset + 1]).toBe(g0);
@@ -183,7 +187,7 @@ describe('AudioSpectrumMappingStrategy', () => {
     audioStore.getState().setVisualizationMode('energy');
     const spectrum = new Float32Array(1024).fill(0.7);
     const frame: FrameData = { type: 'audio', spectrum };
-    const result = strategy.map(frame, 480);
+    const result = strategy.map(frame, LED);
 
     // All LEDs should have the same color
     const r = result[0];
@@ -201,7 +205,7 @@ describe('AudioSpectrumMappingStrategy', () => {
 
     // Quiet signal
     const quietSpectrum = new Float32Array(1024).fill(0.1);
-    const quietResult = strategy.map({ type: 'audio', spectrum: quietSpectrum }, 480);
+    const quietResult = strategy.map({ type: 'audio', spectrum: quietSpectrum }, LED);
     const quietBrightness = quietResult[0] + quietResult[1] + quietResult[2];
 
     // Reset smoothing by creating new strategy
@@ -209,7 +213,7 @@ describe('AudioSpectrumMappingStrategy', () => {
 
     // Loud signal
     const loudSpectrum = new Float32Array(1024).fill(0.9);
-    const loudResult = strategy2.map({ type: 'audio', spectrum: loudSpectrum }, 480);
+    const loudResult = strategy2.map({ type: 'audio', spectrum: loudSpectrum }, LED);
     const loudBrightness = loudResult[0] + loudResult[1] + loudResult[2];
 
     expect(loudBrightness).toBeGreaterThan(quietBrightness);
@@ -225,13 +229,14 @@ describe('AudioSpectrumMappingStrategy', () => {
     }
 
     const frame: FrameData = { type: 'audio', spectrum };
-    const result = strategy.map(frame, 480);
+    const result = strategy.map(frame, LED);
 
     // LEDs at start, middle, and end should differ
     const startRgb = [result[0], result[1], result[2]];
-    const midIdx = 240 * 3;
+    const midLed = Math.floor(LED / 2);
+    const midIdx = midLed * 3;
     const midRgb = [result[midIdx], result[midIdx + 1], result[midIdx + 2]];
-    const endIdx = 479 * 3;
+    const endIdx = (LED - 1) * 3;
     const endRgb = [result[endIdx], result[endIdx + 1], result[endIdx + 2]];
 
     // Middle should be brightest (peak of sine)
@@ -249,7 +254,7 @@ describe('AudioSpectrumMappingStrategy', () => {
     // All values at 0.5 (below threshold 200/255 ≈ 0.784)
     const spectrum = new Float32Array(1024).fill(0.5);
     const frame: FrameData = { type: 'audio', spectrum };
-    const result = strategy.map(frame, 480);
+    const result = strategy.map(frame, LED);
 
     // All should be black since all values are below threshold
     for (let i = 0; i < result.length; i++) {
@@ -263,7 +268,7 @@ describe('AudioSpectrumMappingStrategy', () => {
     // All values at 0.9 (above threshold 50/255 ≈ 0.196)
     const spectrum = new Float32Array(1024).fill(0.9);
     const frame: FrameData = { type: 'audio', spectrum };
-    const result = strategy.map(frame, 480);
+    const result = strategy.map(frame, LED);
 
     // Should have non-zero values
     let hasNonZero = false;
@@ -277,8 +282,8 @@ describe('AudioSpectrumMappingStrategy', () => {
     const spectrum = new Float32Array(1024).fill(0.5);
     const frame: FrameData = { type: 'audio', spectrum };
 
-    const result1 = strategy.map(frame, 480);
-    const result2 = strategy.map(frame, 480);
+    const result1 = strategy.map(frame, LED);
+    const result2 = strategy.map(frame, LED);
 
     // Same buffer reference (no allocation per map call)
     expect(result1).toBe(result2);

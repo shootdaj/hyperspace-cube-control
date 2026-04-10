@@ -12,6 +12,7 @@
 import { sampleEdges } from './edgeSampling';
 import { extractFaceEdges } from './faceExtraction';
 import { computeMotion, mapMotionToLeds } from './motionDetection';
+import { DEFAULT_FRAME_SIZE } from '@/core/constants';
 import type { WorkerRequest, WorkerResponse } from './videoWorkerTypes';
 
 let canvas: OffscreenCanvas | null = null;
@@ -78,7 +79,7 @@ function processMotion(
     previousFrameData = new Uint8ClampedArray(currentData);
     return {
       type: 'motionResult',
-      leds: new Uint8Array(480 * 3),
+      leds: new Uint8Array(DEFAULT_FRAME_SIZE),
       motionLevel: 0,
     };
   }

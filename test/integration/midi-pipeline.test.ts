@@ -3,6 +3,7 @@ import { MIDIPlugin } from '@/plugins/inputs/MIDIPlugin';
 import { MIDICCMappingStrategy } from '@/plugins/mappings/MIDICCMappingStrategy';
 import { ledStateProxy } from '@/core/store/ledStateProxy';
 import { midiStore } from '@/stores/midiStore';
+import { DEFAULT_FRAME_SIZE } from '@/core/constants';
 import { cubeStateStore } from '@/core/store/cubeStateStore';
 import { runPipelineTick, FRAME_INTERVAL_MS, type PipelineRefs } from '@/core/pipeline/PipelineEngine';
 import { pluginRegistry } from '@/core/pipeline/PluginRegistry';
@@ -84,7 +85,7 @@ describe('MIDI Pipeline Integration', () => {
 
     // Output should have been sent
     expect(mockOutput.sentFrames).toHaveLength(1);
-    expect(mockOutput.sentFrames[0].leds.length).toBe(480 * 3);
+    expect(mockOutput.sentFrames[0].leds.length).toBe(DEFAULT_FRAME_SIZE);
 
     midiPlugin.destroy();
   });
@@ -196,7 +197,7 @@ describe('MIDI Pipeline Integration', () => {
     ccValues.set(7, 100);
 
     const manualPlugin = new MockInputPlugin();
-    const leds = new Uint8Array(480 * 3);
+    const leds = new Uint8Array(DEFAULT_FRAME_SIZE);
     leds[0] = 42; leds[1] = 84; leds[2] = 126;
     manualPlugin.setNextFrame({ type: 'direct', leds });
 

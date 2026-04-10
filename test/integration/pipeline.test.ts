@@ -54,7 +54,7 @@ describe('Pipeline Integration', () => {
       const output = new MockOutputPlugin();
 
       // Set up input with non-zero data
-      const leds = new Uint8Array(480 * 3);
+      const leds = new Uint8Array(224 * 3);
       leds[0] = 200;
       leds[1] = 100;
       leds[2] = 50;

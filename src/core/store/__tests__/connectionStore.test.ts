@@ -1,8 +1,11 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { connectionStore } from '../connectionStore';
 
+const IP_STORAGE_KEY = 'hypercube-device-ip';
+
 describe('connectionStore', () => {
   beforeEach(() => {
+    localStorage.removeItem(IP_STORAGE_KEY);
     connectionStore.setState({ ip: '', status: 'disconnected' });
   });
 
@@ -27,5 +30,16 @@ describe('connectionStore', () => {
   it('TestConnectionStore_SetStatus_UpdatesToReconnecting', () => {
     connectionStore.getState().setStatus('reconnecting');
     expect(connectionStore.getState().status).toBe('reconnecting');
+  });
+
+  it('TestConnectionStore_SetIp_PersistsToLocalStorage', () => {
+    connectionStore.getState().setIp('10.0.0.5');
+    expect(localStorage.getItem(IP_STORAGE_KEY)).toBe('10.0.0.5');
+  });
+
+  it('TestConnectionStore_SetIp_EmptyRemovesFromLocalStorage', () => {
+    localStorage.setItem(IP_STORAGE_KEY, '10.0.0.5');
+    connectionStore.getState().setIp('');
+    expect(localStorage.getItem(IP_STORAGE_KEY)).toBeNull();
   });
 });

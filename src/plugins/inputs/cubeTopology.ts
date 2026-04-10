@@ -1,13 +1,23 @@
 /**
  * Cube topology helpers — maps between LED indices, edges, and faces.
  *
- * HyperCube 15-SE: 12 edges, 40 LEDs per edge, 480 total.
- * LED index = edgeIndex * LEDS_PER_EDGE + positionOnEdge.
+ * HyperCube 15-SE: 12 edges, 224 LEDs total.
+ * - Edges 0-7 (bottom + top): 19 LEDs each
+ * - Edges 8-11 (vertical): 18 LEDs each
  */
 
-export const LEDS_PER_EDGE = 40;
-export const EDGE_COUNT = 12;
+import {
+  EDGE_COUNT as _EDGE_COUNT,
+  DEFAULT_LED_COUNT,
+  EDGE_LED_COUNTS,
+  getEdgeStartIndex,
+} from '@/core/constants';
+
+export const EDGE_COUNT = _EDGE_COUNT;
 export const FACE_COUNT = 6;
+
+/** Total LED count (re-exported for convenience) */
+export const LED_COUNT = DEFAULT_LED_COUNT;
 
 /**
  * 6 cube faces, each defined by its 4 edge indices.
@@ -29,28 +39,35 @@ export const FACE_EDGES: readonly number[][] = [
 ];
 
 /**
- * Get the edge index (0-11) for a given LED index (0-479).
+ * Get the edge index (0-11) for a given LED index (0-223).
+ * Handles non-uniform LED counts per edge.
  * @throws if ledIndex is out of range
  */
 export function getEdgeIndex(ledIndex: number): number {
-  if (ledIndex < 0 || ledIndex >= LEDS_PER_EDGE * EDGE_COUNT) {
-    throw new RangeError(`LED index ${ledIndex} out of range [0, ${LEDS_PER_EDGE * EDGE_COUNT - 1}]`);
+  if (ledIndex < 0 || ledIndex >= LED_COUNT) {
+    throw new RangeError(`LED index ${ledIndex} out of range [0, ${LED_COUNT - 1}]`);
   }
-  return Math.floor(ledIndex / LEDS_PER_EDGE);
+  let cumulative = 0;
+  for (let e = 0; e < EDGE_COUNT; e++) {
+    cumulative += EDGE_LED_COUNTS[e];
+    if (ledIndex < cumulative) return e;
+  }
+  return EDGE_COUNT - 1; // should not reach here
 }
 
 /**
  * Get all LED indices for a given edge (0-11).
- * Returns array of 40 LED indices.
+ * Returns array of LED indices (19 for edges 0-7, 18 for edges 8-11).
  * @throws if edgeIndex is out of range
  */
 export function getEdgeLedIndices(edgeIndex: number): number[] {
   if (edgeIndex < 0 || edgeIndex >= EDGE_COUNT) {
     throw new RangeError(`Edge index ${edgeIndex} out of range [0, ${EDGE_COUNT - 1}]`);
   }
-  const start = edgeIndex * LEDS_PER_EDGE;
+  const start = getEdgeStartIndex(edgeIndex);
+  const count = EDGE_LED_COUNTS[edgeIndex];
   const indices: number[] = [];
-  for (let i = 0; i < LEDS_PER_EDGE; i++) {
+  for (let i = 0; i < count; i++) {
     indices.push(start + i);
   }
   return indices;
@@ -76,7 +93,7 @@ export function getEdgeFaces(edgeIndex: number): number[] {
 
 /**
  * Get all LED indices for all edges of a given face (0-5).
- * Returns array of 160 LED indices (4 edges * 40 LEDs).
+ * Returns array of LED indices (variable count due to non-uniform edges).
  * @throws if faceIndex is out of range
  */
 export function getFaceEdgeIndices(faceIndex: number): number[] {

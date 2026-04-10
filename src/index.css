@@ -2,19 +2,18 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 @import "@fontsource-variable/geist";
+@import "@fontsource-variable/jetbrains-mono";
+@import "@fontsource-variable/inter";
 
-/* Theme CSS custom property sets */
-@import "./themes/midnight-grid.css";
+/* Theme CSS */
 @import "./themes/neon-void.css";
-@import "./themes/brutalist.css";
-@import "./themes/ember.css";
-@import "./themes/phosphor.css";
 
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-    --font-heading: var(--font-sans);
+    --font-heading: 'Inter Variable', var(--font-sans);
     --font-sans: 'Geist Variable', sans-serif;
+    --font-mono: 'JetBrains Mono Variable', ui-monospace, monospace;
     --color-sidebar-ring: var(--sidebar-ring);
     --color-sidebar-border: var(--sidebar-border);
     --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -56,38 +55,39 @@
 }
 
 :root {
-    --background: oklch(1 0 0);
-    --foreground: oklch(0.145 0 0);
-    --card: oklch(1 0 0);
-    --card-foreground: oklch(0.145 0 0);
-    --popover: oklch(1 0 0);
-    --popover-foreground: oklch(0.145 0 0);
-    --primary: oklch(0.205 0 0);
-    --primary-foreground: oklch(0.985 0 0);
-    --secondary: oklch(0.97 0 0);
-    --secondary-foreground: oklch(0.205 0 0);
-    --muted: oklch(0.97 0 0);
-    --muted-foreground: oklch(0.556 0 0);
-    --accent: oklch(0.97 0 0);
-    --accent-foreground: oklch(0.205 0 0);
-    --destructive: oklch(0.577 0.245 27.325);
-    --border: oklch(0.922 0 0);
-    --input: oklch(0.922 0 0);
-    --ring: oklch(0.708 0 0);
+    /* Dark by default — all 5 themes are dark pro-tool aesthetics */
+    --background: oklch(0.145 0 0);
+    --foreground: oklch(0.985 0 0);
+    --card: oklch(0.205 0 0);
+    --card-foreground: oklch(0.985 0 0);
+    --popover: oklch(0.205 0 0);
+    --popover-foreground: oklch(0.985 0 0);
+    --primary: oklch(0.922 0 0);
+    --primary-foreground: oklch(0.205 0 0);
+    --secondary: oklch(0.269 0 0);
+    --secondary-foreground: oklch(0.985 0 0);
+    --muted: oklch(0.269 0 0);
+    --muted-foreground: oklch(0.708 0 0);
+    --accent: oklch(0.269 0 0);
+    --accent-foreground: oklch(0.985 0 0);
+    --destructive: oklch(0.704 0.191 22.216);
+    --border: oklch(1 0 0 / 10%);
+    --input: oklch(1 0 0 / 15%);
+    --ring: oklch(0.556 0 0);
     --chart-1: oklch(0.87 0 0);
     --chart-2: oklch(0.556 0 0);
     --chart-3: oklch(0.439 0 0);
     --chart-4: oklch(0.371 0 0);
     --chart-5: oklch(0.269 0 0);
     --radius: 0.625rem;
-    --sidebar: oklch(0.985 0 0);
-    --sidebar-foreground: oklch(0.145 0 0);
-    --sidebar-primary: oklch(0.205 0 0);
+    --sidebar: oklch(0.205 0 0);
+    --sidebar-foreground: oklch(0.985 0 0);
+    --sidebar-primary: oklch(0.488 0.243 264.376);
     --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.97 0 0);
-    --sidebar-accent-foreground: oklch(0.205 0 0);
-    --sidebar-border: oklch(0.922 0 0);
-    --sidebar-ring: oklch(0.708 0 0);
+    --sidebar-accent: oklch(0.269 0 0);
+    --sidebar-accent-foreground: oklch(0.985 0 0);
+    --sidebar-border: oklch(1 0 0 / 10%);
+    --sidebar-ring: oklch(0.556 0 0);
 }
 
 .dark {
@@ -168,5 +168,78 @@
   }
   .theme-glow {
     box-shadow: var(--theme-glow, none);
+  }
+}
+
+/* ===== PRO-TOOL CUSTOM STYLES ===== */
+
+@layer utilities {
+  /* Section header with accent left border — used in control panels */
+  .section-header {
+    @apply flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-muted-foreground;
+    padding-left: 0.75rem;
+    border-left: 2px solid var(--primary, oklch(0.65 0.2 260));
+  }
+
+  /* Slider value display — large monospace readout */
+  .value-readout {
+    @apply font-mono text-lg font-bold tabular-nums text-foreground;
+  }
+
+  /* Subtle noise texture for panels */
+  .noise-texture {
+    position: relative;
+  }
+  .noise-texture::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    opacity: 0.03;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+    pointer-events: none;
+    border-radius: inherit;
+  }
+
+  /* Ambient glow behind cube viewport */
+  .cube-viewport-glow {
+    background: radial-gradient(
+      ellipse 60% 60% at 50% 50%,
+      oklch(0.2 0.05 260 / 0.3) 0%,
+      transparent 70%
+    );
+  }
+
+  /* Pulsing connection dot */
+  .pulse-connected {
+    animation: pulse-glow 2s ease-in-out infinite;
+  }
+
+  /* Icon nav button active state */
+  .nav-icon-active {
+    @apply text-foreground;
+    background: var(--accent);
+    box-shadow: inset 0 0 0 1px var(--primary), 0 0 8px oklch(0.65 0.2 260 / 0.2);
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 oklch(0.7 0.2 145 / 0.4); }
+  50% { opacity: 0.85; box-shadow: 0 0 6px 3px oklch(0.7 0.2 145 / 0.15); }
+}
+
+/* Custom scrollbar for the control panel */
+@layer base {
+  .control-scrollbar::-webkit-scrollbar {
+    width: 4px;
+  }
+  .control-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .control-scrollbar::-webkit-scrollbar-thumb {
+    background: oklch(0.3 0 0);
+    border-radius: 2px;
+  }
+  .control-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: oklch(0.4 0 0);
   }
 }

@@ -68,10 +68,10 @@ describe('faceExtraction', () => {
   });
 
   describe('sampleBorder', () => {
-    it('TestSampleBorder_Returns40Samples', () => {
+    it('TestSampleBorder_ReturnsDefaultSamples', () => {
       const data = createTestImageData(300, 200);
       const samples = sampleBorder(data, 300, 200, FACE_REGIONS[0], 'top');
-      expect(samples).toHaveLength(40);
+      expect(samples).toHaveLength(19); // default sampleCount
     });
 
     it('TestSampleBorder_EachSampleHas3Components', () => {
@@ -104,11 +104,11 @@ describe('faceExtraction', () => {
   });
 
   describe('extractFaceEdges', () => {
-    it('TestExtractFaceEdges_Returns480x3Bytes', () => {
+    it('TestExtractFaceEdges_Returns224x3Bytes', () => {
       const data = createTestImageData(300, 200);
       const result = extractFaceEdges(data, 300, 200);
       expect(result).toBeInstanceOf(Uint8Array);
-      expect(result.length).toBe(480 * 3);
+      expect(result.length).toBe(224 * 3);
     });
 
     it('TestExtractFaceEdges_SolidImageProducesUniformColor', () => {

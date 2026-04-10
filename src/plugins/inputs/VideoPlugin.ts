@@ -1,6 +1,7 @@
 import type { InputPlugin, FrameData, PluginContext } from '@/core/pipeline/types';
 import type { WorkerRequest, WorkerResponse, MappingStrategyType } from '@/workers/videoWorkerTypes';
 import { videoStore } from '@/stores/videoStore';
+import { DEFAULT_FRAME_SIZE } from '@/core/constants';
 
 /**
  * VideoPlugin — InputPlugin for video/image-to-LED mapping.
@@ -27,7 +28,7 @@ export class VideoPlugin implements InputPlugin {
   private video: HTMLVideoElement | null = null;
   private canvas: HTMLCanvasElement | null = null;
   private ctx: CanvasRenderingContext2D | null = null;
-  private latestLeds: Uint8Array = new Uint8Array(480 * 3);
+  private latestLeds: Uint8Array = new Uint8Array(DEFAULT_FRAME_SIZE);
   private pendingFrame = false;
   private strategy: MappingStrategyType = 'edge-sampling';
   private processWidth = 320;  // Downscale for performance
@@ -43,6 +44,9 @@ export class VideoPlugin implements InputPlugin {
   }
 
   async initialize(_ctx: PluginContext): Promise<void> {
+    // Guard: skip if already initialized (idempotent)
+    if (this.worker) return;
+
     // Create the Web Worker (use injected worker if provided for tests)
     this.worker = this.injectedWorker ?? new Worker(
       new URL('@/workers/VideoProcessorWorker.ts', import.meta.url),

@@ -31,5 +31,15 @@ dist-ssr/
 *.swp
 *.swo
 
+# Environment
+.env
+.env.local
+
 # Test coverage
 coverage/
+.vercel
+
+# Capacitor iOS
+ios/App/Pods/
+ios/App/build/
+HyperCube-Control-*.apk

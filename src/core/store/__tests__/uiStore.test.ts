@@ -7,6 +7,7 @@ describe('uiStore', () => {
       activePluginId: null,
       activePanel: 'control',
       wizardCompleted: false,
+      pipelinePaused: false,
     });
   });
 
@@ -35,5 +36,20 @@ describe('uiStore', () => {
 
   it('TestUIStore_InitialActivePluginId_IsNull', () => {
     expect(uiStore.getState().activePluginId).toBeNull();
+  });
+
+  it('TestUIStore_InitialPipelinePaused_IsFalse', () => {
+    expect(uiStore.getState().pipelinePaused).toBe(false);
+  });
+
+  it('TestUIStore_SetPipelinePaused_TogglesToTrue', () => {
+    uiStore.getState().setPipelinePaused(true);
+    expect(uiStore.getState().pipelinePaused).toBe(true);
+  });
+
+  it('TestUIStore_SetPipelinePaused_TogglesToFalse', () => {
+    uiStore.getState().setPipelinePaused(true);
+    uiStore.getState().setPipelinePaused(false);
+    expect(uiStore.getState().pipelinePaused).toBe(false);
   });
 });

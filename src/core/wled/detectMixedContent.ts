@@ -18,6 +18,9 @@ export function detectMixedContent(deviceIp: string): boolean {
   // even when the page is on HTTPS -- WebSocket to these always works
   if (deviceIp === 'localhost' || deviceIp === '127.0.0.1') return false;
 
-  // Mixed content blocked when page is HTTPS but device is HTTP
-  return typeof window !== 'undefined' && window.isSecureContext;
+  // Mixed content blocked when page is HTTPS but device is HTTP.
+  // NOTE: Do NOT use window.isSecureContext here — it returns true for
+  // localhost even when the page is served over HTTP, which would falsely
+  // trigger mixed content warnings for local dev servers.
+  return typeof window !== 'undefined' && window.location.protocol === 'https:';
 }

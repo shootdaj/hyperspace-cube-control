@@ -1,6 +1,7 @@
 import { useRef, useEffect } from 'react';
 import type { InputPlugin, MappingStrategy, OutputPlugin } from './types';
 import { ledStateProxy } from '@/core/store/ledStateProxy';
+import { DEFAULT_LED_COUNT } from '@/core/constants';
 
 export const TARGET_FPS = 30;
 export const FRAME_INTERVAL_MS = 1000 / TARGET_FPS; // ~33.33ms
@@ -32,7 +33,7 @@ export function runPipelineTick(
   const frame = input.tick(delta);
   if (!frame) return false;
 
-  const leds = mapping.map(frame, 480);
+  const leds = mapping.map(frame, DEFAULT_LED_COUNT);
   ledStateProxy.colors.set(leds);
   ledStateProxy.lastUpdated = now;
 

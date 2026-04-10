@@ -25,22 +25,9 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
  * These get loaded as <link> tags in the document head.
  */
 const THEME_FONTS: Record<ThemeId, string[]> = {
-  'midnight-grid': [
-    'https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap',
-  ],
   'neon-void': [
     'https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&display=swap',
     'https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap',
-  ],
-  'brutalist': [
-    'https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap',
-  ],
-  'ember': [
-    'https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&display=swap',
-    'https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&display=swap',
-  ],
-  'phosphor': [
-    'https://fonts.googleapis.com/css2?family=VT323&display=swap',
   ],
 };
 
