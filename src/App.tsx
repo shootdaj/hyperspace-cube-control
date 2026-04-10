@@ -209,7 +209,8 @@ export default function App() {
 
             {/* Control Panel Sidebar — sleek dark rack */}
             <div
-              className="flex-1 md:flex-none md:w-[420px] md:max-w-[420px] border-t md:border-t-0 md:border-l border-border min-h-0 bg-background"
+              className="flex-1 md:flex-none md:w-[420px] md:max-w-[420px] border-t md:border-t-0 md:border-l border-border min-h-0"
+              style={{ backgroundColor: '#06060f' }}
             >
               <ControlPanel />
             </div>
