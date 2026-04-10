@@ -150,7 +150,7 @@ export function CubeMesh() {
   // Without memoization, new objects are created on every React re-render.
   const geometry = useMemo(() => new THREE.SphereGeometry(0.025, 8, 8), []);
   const material = useMemo(
-    () => new THREE.MeshBasicMaterial({ vertexColors: true, toneMapped: false }),
+    () => new THREE.MeshBasicMaterial({ toneMapped: false }),
     [],
   );
 
