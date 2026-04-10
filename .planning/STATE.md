@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-last_updated: "2026-04-10T04:56:04.931Z"
+last_updated: "2026-04-10T05:06:00.065Z"
 progress:
   total_phases: 7
   completed_phases: 2
@@ -61,6 +61,8 @@ Recent decisions affecting current work:
 - Roadmap: Video processing MUST use OffscreenCanvas + Web Worker — main thread safety; Phase 7
 - Roadmap: WLED WebSocket singleton required — max 4 clients, `{"lv":true}` exclusive lock; Phase 1
 - [Phase quick-3]: Play/pause uses uiStore.getState() synchronous read in RAF tick; button conditional on connected status
+- [Phase quick-4]: Used ImageData putImageData for XY grid canvas rendering for performance
+- [Phase quick-4]: Drum pad note routing checks padNoteMap before learn mode and CC mappings in handleNoteOnMessage
 
 ### Pending Todos
 
