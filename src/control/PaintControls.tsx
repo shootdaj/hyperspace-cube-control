@@ -6,6 +6,8 @@ import { Separator } from '@/components/ui/separator';
 import { paintStore, type BrushSize } from '@/stores/paintStore';
 import { paintPlugin, paintOutput } from '@/plugins/inputs/paintSingleton';
 import { ledStateProxy } from '@/core/store/ledStateProxy';
+import { connectionStore } from '@/core/store/connectionStore';
+import { SACNController } from '@/core/wled/SACNController';
 
 /**
  * Convert hex color string "#rrggbb" to [R, G, B] tuple.
@@ -52,7 +54,24 @@ export function PaintControls() {
   const hexColor = rgbToHex(color[0], color[1], color[2]);
 
   const handleTogglePaintMode = useCallback(() => {
-    paintStore.getState().setIsPaintMode(!paintStore.getState().isPaintMode);
+    const entering = !paintStore.getState().isPaintMode;
+    paintStore.getState().setIsPaintMode(entering);
+
+    // Kill firmware effect when entering paint mode without sACN
+    if (entering) {
+      let sacnActive = false;
+      try { sacnActive = SACNController.getInstance().isActive(); } catch { /* not initialized */ }
+      if (!sacnActive) {
+        const ip = connectionStore.getState().ip;
+        if (ip) {
+          fetch(`http://${ip}/json/state`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ on: true, bri: 255, seg: [{ fx: 0, sx: 0, ix: 0 }] }),
+          }).catch(() => {});
+        }
+      }
+    }
   }, []);
 
   const handleColorChange = useCallback((hex: string) => {
