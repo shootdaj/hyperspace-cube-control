@@ -73,7 +73,17 @@ export function ControlPanel() {
       // Entering paint tab — enable paint mode automatically
       paintStore.getState().setIsPaintMode(true);
 
-      // Always kill firmware effect when entering paint — whether sACN is active or not
+      // Kill firmware effect AND resume sACN control
+      // SACNController.resumeControl() kills the pattern AND restarts keep-alive
+      try {
+        const { SACNController } = await import('@/core/wled/SACNController');
+        const sacn = SACNController.getInstance();
+        if (sacn.isPaused()) {
+          await sacn.resumeControl();
+        }
+      } catch { /* not initialized */ }
+
+      // Also send REST as fallback (for native app without sACN)
       const ip = connectionStore.getState().ip;
       if (ip) {
         fetch(`http://${ip}/json/state`, {
