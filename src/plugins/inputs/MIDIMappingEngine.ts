@@ -126,6 +126,8 @@ export function handleDrumPadNoteOn(_channel: number, note: number, _velocity: n
   if (padIndex === -1) return false;
 
   const [r, g, b] = state.padColors[padIndex];
+
+  // Update local visualization
   const colors = ledStateProxy.colors;
   for (let i = 0; i < DEFAULT_LED_COUNT; i++) {
     colors[i * 3] = r;
@@ -133,6 +135,17 @@ export function handleDrumPadNoteOn(_channel: number, note: number, _velocity: n
     colors[i * 3 + 2] = b;
   }
   ledStateProxy.lastUpdated = performance.now();
+
+  // Fire REST directly to cube — bypasses sACN for instant response
+  const ip = connectionStore.getState().ip;
+  if (ip) {
+    fetch(`http://${ip}/json/state`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ on: true, bri: 255, seg: [{ col: [[r, g, b]] }] }),
+    }).catch(() => {});
+  }
+
   return true;
 }
 
@@ -152,6 +165,16 @@ export function handleDrumPadNoteOff(note: number): void {
     colors[i * 3 + 2] = 0;
   }
   ledStateProxy.lastUpdated = performance.now();
+
+  // Direct REST for instant response
+  const ip = connectionStore.getState().ip;
+  if (ip) {
+    fetch(`http://${ip}/json/state`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ seg: [{ col: [[0, 0, 0]] }] }),
+    }).catch(() => {});
+  }
 }
 
 /**
