@@ -42,3 +42,4 @@ coverage/
 # Capacitor iOS
 ios/App/Pods/
 ios/App/build/
+HyperCube-Control-*.apk
